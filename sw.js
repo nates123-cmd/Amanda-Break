@@ -1,4 +1,4 @@
-const CACHE = 'amannda-break-v3';
+const CACHE = 'amannda-break-v4';
 const ASSETS = ['./', './index.html', './manifest.json'];
 
 self.addEventListener('install', e => {
