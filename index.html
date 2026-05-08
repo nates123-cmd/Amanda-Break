@@ -73,14 +73,15 @@
 
     .activity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 8px 20px 16px; }
     .activity-card {
-      background: var(--card); border-radius: var(--radius); padding: 22px 16px;
+      background: var(--card); border-radius: var(--radius); padding: 18px 16px 16px;
       display: flex; flex-direction: column; align-items: flex-start;
-      justify-content: flex-end; min-height: 80px;
+      justify-content: space-between; min-height: 100px;
       cursor: pointer; box-shadow: var(--shadow); border: 1px solid var(--border);
       transition: transform 0.12s; user-select: none;
     }
     .activity-card:active { transform: scale(0.96); }
-    .card-label { font-size: 0.88rem; font-weight: 600; text-align: left; line-height: 1.3; }
+    .card-icon svg { width: 22px; height: 22px; stroke: var(--accent); stroke-width: 1.75; fill: none; }
+    .card-label { font-size: 0.84rem; font-weight: 600; text-align: left; line-height: 1.3; margin-top: 14px; }
 
     .random-btn {
       margin: 0 20px 24px; background: var(--accent); color: white; border: none;
@@ -429,25 +430,26 @@
   </div>
 </div>
 
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <script>
 // ─────────────────────────────────────────
 // ACTIVITIES
 // ─────────────────────────────────────────
 const ACTIVITIES = [
-  { slug: 'flower',     name: 'Flower of the Day',    bucket: 'informational' },
-  { slug: 'color',      name: 'Color of the Day',     bucket: 'informational' },
-  { slug: 'design',     name: 'Architecture & Design', bucket: 'informational' },
-  { slug: 'health',     name: 'Health Insight',        bucket: 'informational' },
-  { slug: 'science',    name: 'Science Bite',          bucket: 'informational' },
-  { slug: 'psychology', name: 'Psychology',            bucket: 'reflection' },
-  { slug: 'reflection', name: 'Reflection',            bucket: 'reflection' },
-  { slug: 'mindful',    name: 'Mindful Moment',        bucket: 'reflection', static: true },
-  { slug: 'media',      name: 'Media Pick',            bucket: 'activity' },
-  { slug: 'weekend',    name: 'This Weekend',          bucket: 'activity' },
-  { slug: 'recipe',     name: 'Recipe Spark',          bucket: 'activity' },
-  { slug: 'flavor',     name: 'Flavor Pairing',        bucket: 'activity' },
-  { slug: 'room',       name: 'Room Refresh',          bucket: 'activity' },
-  { slug: 'breathe',    name: 'Breathe',               bucket: 'reflection', static: true },
+  { slug: 'flower',     name: 'Flower of the Day',    bucket: 'informational', icon: 'flower-2' },
+  { slug: 'color',      name: 'Color of the Day',     bucket: 'informational', icon: 'palette' },
+  { slug: 'design',     name: 'Architecture & Design', bucket: 'informational', icon: 'building-2' },
+  { slug: 'health',     name: 'Health Insight',        bucket: 'informational', icon: 'heart-pulse' },
+  { slug: 'science',    name: 'Science Bite',          bucket: 'informational', icon: 'atom' },
+  { slug: 'psychology', name: 'Psychology',            bucket: 'reflection',    icon: 'brain' },
+  { slug: 'reflection', name: 'Reflection',            bucket: 'reflection',    icon: 'feather' },
+  { slug: 'mindful',    name: 'Mindful Moment',        bucket: 'reflection',    icon: 'leaf', static: true },
+  { slug: 'media',      name: 'Media Pick',            bucket: 'activity',      icon: 'clapperboard' },
+  { slug: 'weekend',    name: 'This Weekend',          bucket: 'activity',      icon: 'map-pin' },
+  { slug: 'recipe',     name: 'Recipe Spark',          bucket: 'activity',      icon: 'chef-hat' },
+  { slug: 'flavor',     name: 'Flavor Pairing',        bucket: 'activity',      icon: 'grape' },
+  { slug: 'room',       name: 'Room Refresh',          bucket: 'activity',      icon: 'sofa' },
+  { slug: 'breathe',    name: 'Breathe',               bucket: 'reflection',    icon: 'wind', static: true },
 ];
 
 const BUCKETS = {
@@ -1096,8 +1098,10 @@ let currentBucket = 'all';
 function buildHomeGrid() {
   document.getElementById('activity-grid').innerHTML = ACTIVITIES.map(a => `
     <div class="activity-card" data-activity="${a.slug}" onclick="navTo('${a.slug}')">
+      <div class="card-icon"><i data-lucide="${a.icon}"></i></div>
       <div class="card-label">${a.name}</div>
     </div>`).join('');
+  if (window.lucide) lucide.createIcons();
 }
 
 function filterActivities(bucket) {
