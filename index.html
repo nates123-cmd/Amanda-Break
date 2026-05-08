@@ -187,6 +187,7 @@
 
     /* ── Psychology reflection prompt ── */
     .reflection-prompt { font-size: 1.15rem; font-style: italic; line-height: 1.75; }
+    .mindful-text { font-size: 1.1rem; line-height: 1.75; }
   </style>
 </head>
 <body>
@@ -320,6 +321,83 @@
 </div>
 
 <!-- ══════════════════════════════════════
+     HEALTH INSIGHT
+══════════════════════════════════════ -->
+<div id="screen-health" class="screen">
+  <div class="screen-header">
+    <button class="back-btn" onclick="navTo('home')">←</button>
+    <span class="screen-title">Health Insight</span>
+  </div>
+  <div id="health-content" class="screen-body"></div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCIENCE BITE
+══════════════════════════════════════ -->
+<div id="screen-science" class="screen">
+  <div class="screen-header">
+    <button class="back-btn" onclick="navTo('home')">←</button>
+    <span class="screen-title">Science Bite</span>
+  </div>
+  <div id="science-content" class="screen-body"></div>
+</div>
+
+<!-- ══════════════════════════════════════
+     REFLECTION
+══════════════════════════════════════ -->
+<div id="screen-reflection" class="screen">
+  <div class="screen-header">
+    <button class="back-btn" onclick="navTo('home')">←</button>
+    <span class="screen-title">Reflection</span>
+  </div>
+  <div id="reflection-content" class="screen-body"></div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MINDFUL MOMENT
+══════════════════════════════════════ -->
+<div id="screen-mindful" class="screen">
+  <div class="screen-header">
+    <button class="back-btn" onclick="navTo('home')">←</button>
+    <span class="screen-title">Mindful Moment</span>
+  </div>
+  <div id="mindful-content" class="screen-body"></div>
+</div>
+
+<!-- ══════════════════════════════════════
+     RECIPE SPARK
+══════════════════════════════════════ -->
+<div id="screen-recipe" class="screen">
+  <div class="screen-header">
+    <button class="back-btn" onclick="navTo('home')">←</button>
+    <span class="screen-title">Recipe Spark</span>
+  </div>
+  <div id="recipe-content" class="screen-body"></div>
+</div>
+
+<!-- ══════════════════════════════════════
+     FLAVOR PAIRING
+══════════════════════════════════════ -->
+<div id="screen-flavor" class="screen">
+  <div class="screen-header">
+    <button class="back-btn" onclick="navTo('home')">←</button>
+    <span class="screen-title">Flavor Pairing</span>
+  </div>
+  <div id="flavor-content" class="screen-body"></div>
+</div>
+
+<!-- ══════════════════════════════════════
+     ROOM REFRESH
+══════════════════════════════════════ -->
+<div id="screen-room" class="screen">
+  <div class="screen-header">
+    <button class="back-btn" onclick="navTo('home')">←</button>
+    <span class="screen-title">Room Refresh</span>
+  </div>
+  <div id="room-content" class="screen-body"></div>
+</div>
+
+<!-- ══════════════════════════════════════
      BREATHE
 ══════════════════════════════════════ -->
 <div id="screen-breathe" class="screen">
@@ -359,17 +437,24 @@ const ACTIVITIES = [
   { slug: 'flower',     name: 'Flower of the Day',    bucket: 'informational' },
   { slug: 'color',      name: 'Color of the Day',     bucket: 'informational' },
   { slug: 'design',     name: 'Architecture & Design', bucket: 'informational' },
+  { slug: 'health',     name: 'Health Insight',        bucket: 'informational' },
+  { slug: 'science',    name: 'Science Bite',          bucket: 'informational' },
   { slug: 'psychology', name: 'Psychology',            bucket: 'reflection' },
+  { slug: 'reflection', name: 'Reflection',            bucket: 'reflection' },
+  { slug: 'mindful',    name: 'Mindful Moment',        bucket: 'reflection', static: true },
   { slug: 'media',      name: 'Media Pick',            bucket: 'activity' },
   { slug: 'weekend',    name: 'This Weekend',          bucket: 'activity' },
+  { slug: 'recipe',     name: 'Recipe Spark',          bucket: 'activity' },
+  { slug: 'flavor',     name: 'Flavor Pairing',        bucket: 'activity' },
+  { slug: 'room',       name: 'Room Refresh',          bucket: 'activity' },
   { slug: 'breathe',    name: 'Breathe',               bucket: 'reflection', static: true },
 ];
 
 const BUCKETS = {
   all:           ACTIVITIES.map(a => a.slug),
-  informational: ['flower', 'color', 'design'],
-  activity:      ['media', 'weekend'],
-  reflection:    ['psychology', 'breathe'],
+  informational: ['flower', 'color', 'design', 'health', 'science'],
+  activity:      ['media', 'weekend', 'recipe', 'flavor', 'room'],
+  reflection:    ['psychology', 'reflection', 'mindful', 'breathe'],
 };
 
 // ─────────────────────────────────────────
@@ -743,6 +828,162 @@ ${dismissed.length ? `Avoid these: ${dismissed.slice(-20).join(', ')}` : ''}`;
       ${googleBtn(d.suggestion)}
     </div>`,
   { type: 'activity', suggestion: 'Visit a botanical garden', why_try_it: 'Walking among plants has a measurable effect on cortisol. An hour outside with no agenda is a surprisingly good reset.', details: 'Bring a coffee, walk slowly, leave your phone in your pocket.' }
+);
+
+// ─────────────────────────────────────────
+// SCIENCE
+// ─────────────────────────────────────────
+loaders.science = makeLoader(
+  'science',
+  ({ dismissed }) => `You are a science communicator who makes the universe feel magical. Return ONLY a valid JSON object with no markdown fences.
+Share one surprising, beautiful, or counterintuitive scientific finding. Shape: {"headline":"...","explanation":"...","why_it_matters":"..."}
+explanation: 2–3 accessible, wonder-filled sentences.
+${dismissed.length ? `Avoid these topics: ${dismissed.slice(-20).join(', ')}` : ''}`,
+  (d, id) => `
+    <div class="content-card">
+      <div class="card-tag">Science Bite</div>
+      <div class="card-title">${d.headline}</div>
+      <div class="card-body">${d.explanation}</div>
+      <div class="card-field"><span class="field-label">Why it matters</span>${d.why_it_matters}</div>
+      ${cardFooter('science', id, `${d.headline}\n\n${d.explanation}\n\n${d.why_it_matters}`)}
+      ${googleBtn(d.headline)}
+    </div>`,
+  { headline: 'Trees share nutrients through underground fungal networks', explanation: 'Forests are threaded together by vast mycorrhizal networks — sometimes called the Wood Wide Web. Trees send sugars and chemical signals to their neighbors through these fungal threads, sometimes even feeding struggling seedlings.', why_it_matters: 'A forest isn\'t a collection of competing individuals. It\'s more like a community that looks out for itself.' }
+);
+
+// ─────────────────────────────────────────
+// HEALTH
+// ─────────────────────────────────────────
+loaders.health = makeLoader(
+  'health',
+  ({ dismissed }) => `You are a health educator who values evidence-based, practical wellness. Return ONLY a valid JSON object with no markdown fences.
+Share one specific, interesting health insight about nutrition, sleep, movement, or the body. Shape: {"topic":"...","insight":"...","practical_takeaway":"..."}
+Be specific and grounded, not generic.
+${dismissed.length ? `Avoid these topics: ${dismissed.slice(-20).join(', ')}` : ''}`,
+  (d, id) => `
+    <div class="content-card">
+      <div class="card-tag">Health Insight</div>
+      <div class="card-title">${d.topic}</div>
+      <div class="card-body">${d.insight}</div>
+      <div class="card-field"><span class="field-label">Try this</span>${d.practical_takeaway}</div>
+      ${cardFooter('health', id, `${d.topic}\n\n${d.insight}\n\nTry this: ${d.practical_takeaway}`)}
+      ${googleBtn(d.topic)}
+    </div>`,
+  { topic: 'Cold exposure and mood', insight: 'Brief cold water exposure — even just 30 seconds — triggers a surge of norepinephrine that can last for hours, improving alertness and lifting mood.', practical_takeaway: 'Finish your next shower with 30 seconds of cold water. It gets easier fast.' }
+);
+
+// ─────────────────────────────────────────
+// REFLECTION
+// ─────────────────────────────────────────
+loaders.reflection = makeLoader(
+  'reflection',
+  ({ dismissed }) => `You are a warm, thoughtful guide for personal reflection. Return ONLY a valid JSON object with no markdown fences.
+Generate a gentle, open-ended journaling prompt about feelings, values, relationships, or what makes life meaningful. Shape: {"prompt":"...","follow_up":"..."}
+Keep it warm, non-judgmental, and specific enough to be interesting.
+${dismissed.length ? `Avoid these themes: ${dismissed.slice(-20).join(', ')}` : ''}`,
+  (d, id) => `
+    <div class="content-card">
+      <div class="card-tag">Reflection</div>
+      <div class="card-body reflection-prompt">${d.prompt}</div>
+      <div class="card-field" style="margin-top:8px"><span class="field-label">Go deeper</span>${d.follow_up}</div>
+      <button class="journal-cta" onclick="journalToNote(decodeURIComponent('${encodeURIComponent(d.prompt + '\n\n' + d.follow_up + '\n\n')}'))">Open journal</button>
+      ${cardFooter('reflection', id, `${d.prompt}\n\n${d.follow_up}\n\n`)}
+    </div>`,
+  { prompt: 'What is one small thing from this week that made you feel like yourself?', follow_up: 'What does that moment tell you about what you actually need more of?' }
+);
+
+// ─────────────────────────────────────────
+// MINDFUL MOMENT (static)
+// ─────────────────────────────────────────
+const MINDFUL_PROMPTS = [
+  { title: 'Body Scan',       text: 'Close your eyes. Slowly bring awareness from your feet upward — legs, belly, chest, shoulders, face. Notice any tension without trying to change it. Just notice.' },
+  { title: 'Gratitude',       text: 'Think of three specific things you\'re grateful for right now. Not big things — small ones. A smell, a warmth, a person\'s laugh.' },
+  { title: '5-4-3-2-1',       text: 'Name five things you can see. Four you can feel. Three you can hear. Two you can smell. One you can taste. You are here.' },
+  { title: 'Loving-Kindness', text: 'Send warmth to yourself first: "May I be at ease." Then someone you love. Then someone you barely know. Then someone difficult.' },
+  { title: 'Breath Anchor',   text: 'Let your breath be the only thing that matters right now. Watch it come in, watch it go out. Nothing to fix. Nothing to do. Just this.' },
+  { title: 'Release',         text: 'With each exhale, let something go — a worry, a task, a tense thought. Just for now. You can pick it back up later if you want to.' },
+  { title: 'Self-Compassion', text: 'Put a hand on your heart. What would you say to a close friend going through exactly what you\'re going through? Say it to yourself.' },
+];
+
+loaders.mindful = function() {
+  const el = document.getElementById('mindful-content');
+  const p  = MINDFUL_PROMPTS[Math.floor(Math.random() * MINDFUL_PROMPTS.length)];
+  el.innerHTML = `
+    <div class="content-card">
+      <div class="card-tag">Mindful Moment</div>
+      <div class="card-title">${p.title}</div>
+      <div class="card-body mindful-text">${p.text}</div>
+      <div class="timer-buttons">
+        <button class="timer-btn" onclick="startTimer(1)">1 min</button>
+        <button class="timer-btn" onclick="startTimer(5)">5 min</button>
+        <button class="timer-btn timer-btn--outline" onclick="loaders.mindful()">Next →</button>
+      </div>
+    </div>`;
+};
+
+// ─────────────────────────────────────────
+// RECIPE SPARK
+// ─────────────────────────────────────────
+loaders.recipe = makeLoader(
+  'recipe',
+  ({ dismissed, liked }) => `You are a creative home cook who loves simple, delicious food. Return ONLY a valid JSON object with no markdown fences.
+Suggest a simple recipe for 2 servings, under 30 minutes, beginner-friendly. Shape: {"name":"...","ingredients":["..."],"steps":["..."],"tip":"..."}
+${dismissed.length ? `Avoid these recipes: ${dismissed.slice(-20).join(', ')}` : ''}
+${liked.length ? `User loved these — suggest something in that spirit: ${liked.slice(-5).join(', ')}` : ''}`,
+  (d, id) => `
+    <div class="content-card">
+      <div class="card-tag">Recipe Spark</div>
+      <div class="card-title">${d.name}</div>
+      <div class="card-section-label">Ingredients</div>
+      <ul class="card-list">${(d.ingredients||[]).map(i=>`<li>${i}</li>`).join('')}</ul>
+      <div class="card-section-label">Steps</div>
+      <ol class="card-list">${(d.steps||[]).map(s=>`<li>${s}</li>`).join('')}</ol>
+      <div class="card-field"><span class="field-label">Tip</span>${d.tip}</div>
+      ${cardFooter('recipe', id, `${d.name}\n\nIngredients:\n${(d.ingredients||[]).map(i=>'• '+i).join('\n')}\n\nSteps:\n${(d.steps||[]).map((s,i)=>`${i+1}. ${s}`).join('\n')}\n\nTip: ${d.tip}`)}
+      ${googleBtn(d.name + ' recipe')}
+    </div>`,
+  { name: 'Lemon Butter Pasta', ingredients: ['200g spaghetti','2 tbsp butter','1 lemon (zest + juice)','2 garlic cloves, minced','parmesan, to serve','salt & pepper'], steps: ['Cook pasta in well-salted boiling water, reserve ½ cup pasta water before draining.','Melt butter in a wide pan, add garlic, cook 1 min over medium heat.','Add drained pasta, lemon zest, and lemon juice. Toss well.','Splash in pasta water a little at a time until the sauce coats the noodles.','Season, plate, and shower with parmesan.'], tip: 'The starchy pasta water is what makes it silky — don\'t skip it.' }
+);
+
+// ─────────────────────────────────────────
+// FLAVOR PAIRING
+// ─────────────────────────────────────────
+loaders.flavor = makeLoader(
+  'flavor',
+  ({ dismissed }) => `You are a food scientist who loves surprising flavor combinations. Return ONLY a valid JSON object with no markdown fences.
+Suggest one unexpected or delightful ingredient pairing with the science behind why it works. Shape: {"pairing":"...","science_explanation":"...","how_to_use":"..."}
+${dismissed.length ? `Avoid these: ${dismissed.slice(-20).join(', ')}` : ''}`,
+  (d, id) => `
+    <div class="content-card">
+      <div class="card-tag">Flavor Pairing</div>
+      <div class="card-title">${d.pairing}</div>
+      <div class="card-field"><span class="field-label">The science</span>${d.science_explanation}</div>
+      <div class="card-field"><span class="field-label">Try it</span>${d.how_to_use}</div>
+      ${cardFooter('flavor', id, `${d.pairing}\n\nThe science: ${d.science_explanation}\n\nHow to use it: ${d.how_to_use}`)}
+      ${googleBtn(d.pairing + ' flavor pairing')}
+    </div>`,
+  { pairing: 'Strawberry + Black Pepper', science_explanation: 'Both share the volatile compound linalool. Fresh pepper\'s piperine sharpens the berry\'s esters and makes its sweetness pop by contrast.', how_to_use: 'Slice fresh strawberries, grind black pepper over them with a pinch of sugar. Let sit 10 minutes before eating.' }
+);
+
+// ─────────────────────────────────────────
+// ROOM REFRESH
+// ─────────────────────────────────────────
+loaders.room = makeLoader(
+  'room',
+  ({ dismissed }) => `You are an interior designer with a warm, nature-inspired aesthetic. Return ONLY a valid JSON object with no markdown fences.
+Suggest one specific, actionable interior design idea. Shape: {"idea":"...","style_notes":"...","why_it_works":"..."}
+Be evocative and specific — reference real colors, real textures, real items.
+${dismissed.length ? `Avoid these ideas: ${dismissed.slice(-20).join(', ')}` : ''}`,
+  (d, id) => `
+    <div class="content-card">
+      <div class="card-tag">Room Refresh</div>
+      <div class="card-title">${d.idea}</div>
+      <div class="card-field"><span class="field-label">Style notes</span>${d.style_notes}</div>
+      <div class="card-field"><span class="field-label">Why it works</span>${d.why_it_works}</div>
+      ${cardFooter('room', id, `${d.idea}\n\nStyle: ${d.style_notes}\n\nWhy it works: ${d.why_it_works}`)}
+      ${googleBtn(d.idea + ' interior design')}
+    </div>`,
+  { idea: 'Layer a terracotta pot with a trailing pothos on a floating shelf', style_notes: 'Pair with linen fabric nearby and a woven basket for an organic vignette', why_it_works: 'The trailing plant softens the hard shelf edge and the warm clay tone connects the living and static elements.' }
 );
 
 // ─────────────────────────────────────────
