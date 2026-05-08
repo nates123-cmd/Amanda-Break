@@ -254,6 +254,20 @@
       border-radius: 14px; padding: 13px; font-size: 0.9rem; font-weight: 500; cursor: pointer;
     }
 
+    /* ── Flower image ── */
+    .card-img-wrap { margin: -22px -20px 18px; border-radius: var(--radius) var(--radius) 0 0; overflow: hidden; height: 200px; background: var(--bg2); }
+    .card-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .card-img-wrap:empty { display: none; }
+
+    /* ── Google button ── */
+    .google-btn {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      width: 100%; background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 11px; font-size: 0.88rem; cursor: pointer;
+      color: var(--text-muted); font-weight: 500; margin-top: 10px;
+    }
+    .google-btn:active { background: var(--border); }
+
     /* ── Reflection ── */
     .reflection-prompt { font-size: 1.15rem; font-style: italic; line-height: 1.75; }
     .journal-cta {
@@ -588,6 +602,29 @@ function journalToNote(text) {
 }
 
 // ─────────────────────────────────────────
+// GOOGLE BUTTON
+// ─────────────────────────────────────────
+function googleBtn(query) {
+  const url = 'https://www.google.com/search?q=' + encodeURIComponent(query);
+  return `<button class="google-btn" onclick="window.open('${url}','_blank')">🔍 Google it</button>`;
+}
+
+// ─────────────────────────────────────────
+// WIKIPEDIA IMAGE
+// ─────────────────────────────────────────
+async function fetchWikiImage(query, wrapEl) {
+  if (!wrapEl) return;
+  try {
+    const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.thumbnail?.source) {
+      wrapEl.innerHTML = `<img class="card-img" src="${data.thumbnail.source}" alt="${query}">`;
+    }
+  } catch {}
+}
+
+// ─────────────────────────────────────────
 // TIMER
 // ─────────────────────────────────────────
 let timerInterval = null;
@@ -655,7 +692,7 @@ function replayCard(index) {
 // ─────────────────────────────────────────
 // MAKE LOADER (factory for Claude activities)
 // ─────────────────────────────────────────
-function makeLoader(slug, promptFn, renderFn, fallback) {
+function makeLoader(slug, promptFn, renderFn, fallback, onAfterRender) {
   return async function load() {
     const el = document.getElementById(`${slug}-content`);
     el.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
@@ -674,6 +711,7 @@ function makeLoader(slug, promptFn, renderFn, fallback) {
       const id = String(data.name || data.headline || data.topic || data.idea || data.pairing || data.prompt || Date.now());
       el.innerHTML = renderFn(data, id);
       addSwipeListener(el.querySelector('.content-card'), slug, id, load);
+      if (onAfterRender) onAfterRender(data, el);
     } catch (e) {
       const id = 'fallback';
       el.innerHTML = renderFn(fallback, id);
@@ -692,6 +730,7 @@ ${dismissed.length ? `Do not repeat these: ${dismissed.slice(-20).join(', ')}` :
 ${liked.length ? `User liked these — suggest something similar in spirit: ${liked.slice(-5).join(', ')}` : ''}`,
   (d, id) => `
     <div class="content-card">
+      <div class="card-img-wrap"></div>
       <div class="card-tag">Flower of the Day</div>
       <div class="card-title">${d.name}</div>
       <div class="card-field"><span class="field-label">Origin</span>${d.origin}</div>
@@ -699,8 +738,10 @@ ${liked.length ? `User liked these — suggest something similar in spirit: ${li
       <div class="card-field"><span class="field-label">Care tip</span>${d.care_tip}</div>
       <div class="card-field"><span class="field-label">Fun fact</span>${d.fun_fact}</div>
       ${cardFooter('flower', id, `${d.name}\n\nMeaning: ${d.meaning}\nFun fact: ${d.fun_fact}\n\nWhat does this flower make me think of?`)}
+      ${googleBtn(d.name + ' flower')}
     </div>`,
-  { name: 'Lavender', origin: 'Mediterranean basin', meaning: 'Calm, devotion, and serenity', care_tip: 'Needs full sun and very well-drained soil — overwatering is its biggest enemy', fun_fact: 'Romans added lavender to their bath water; the name comes from the Latin lavare, "to wash"' }
+  { name: 'Lavender', origin: 'Mediterranean basin', meaning: 'Calm, devotion, and serenity', care_tip: 'Needs full sun and very well-drained soil — overwatering is its biggest enemy', fun_fact: 'Romans added lavender to their bath water; the name comes from the Latin lavare, "to wash"' },
+  (data, el) => fetchWikiImage(data.name, el.querySelector('.card-img-wrap'))
 );
 
 // ─────────────────────────────────────────
@@ -719,6 +760,7 @@ ${dismissed.length ? `Avoid these topics: ${dismissed.slice(-20).join(', ')}` : 
       <div class="card-body">${d.explanation}</div>
       <div class="card-field"><span class="field-label">Why it matters</span>${d.why_it_matters}</div>
       ${cardFooter('science', id, `${d.headline}\n\n${d.explanation}\n\n${d.why_it_matters}`)}
+      ${googleBtn(d.headline)}
     </div>`,
   { headline: 'Trees share nutrients through underground fungal networks', explanation: 'Forests are threaded together by vast mycorrhizal networks — sometimes called the Wood Wide Web. Trees send sugars and chemical signals to their neighbors through these fungal threads, sometimes even feeding struggling seedlings.', why_it_matters: 'A forest isn\'t a collection of competing individuals. It\'s more like a community that looks out for itself.' }
 );
@@ -739,6 +781,7 @@ ${dismissed.length ? `Avoid these topics: ${dismissed.slice(-20).join(', ')}` : 
       <div class="card-body">${d.insight}</div>
       <div class="card-field"><span class="field-label">Try this</span>${d.practical_takeaway}</div>
       ${cardFooter('health', id, `${d.topic}\n\n${d.insight}\n\nTry this: ${d.practical_takeaway}`)}
+      ${googleBtn(d.topic)}
     </div>`,
   { topic: 'Cold exposure and mood', insight: 'Brief cold water exposure — even just 30 seconds — triggers a surge of norepinephrine that can last for hours, improving alertness and lifting mood.', practical_takeaway: 'Finish your next shower with 30 seconds of cold water. It gets easier fast.' }
 );
@@ -759,6 +802,7 @@ ${dismissed.length ? `Avoid these ideas: ${dismissed.slice(-20).join(', ')}` : '
       <div class="card-field"><span class="field-label">Style notes</span>${d.style_notes}</div>
       <div class="card-field"><span class="field-label">Why it works</span>${d.why_it_works}</div>
       ${cardFooter('room', id, `${d.idea}\n\nStyle: ${d.style_notes}\n\nWhy it works: ${d.why_it_works}`)}
+      ${googleBtn(d.idea + ' interior design')}
     </div>`,
   { idea: 'Layer a terracotta pot with a trailing pothos on a floating shelf', style_notes: 'Pair with linen fabric nearby and a piece of driftwood or a woven basket for an organic vignette', why_it_works: 'The trailing plant softens the hard shelf edge and the warm clay tone connects the living and static elements.' }
 );
@@ -782,6 +826,7 @@ ${liked.length ? `User loved these — suggest something in that spirit: ${liked
       <ol class="card-list">${(d.steps || []).map(s => `<li>${s}</li>`).join('')}</ol>
       <div class="card-field"><span class="field-label">Tip</span>${d.tip}</div>
       ${cardFooter('recipe', id, `${d.name}\n\nIngredients:\n${(d.ingredients||[]).map(i=>'• '+i).join('\n')}\n\nSteps:\n${(d.steps||[]).map((s,i)=>`${i+1}. ${s}`).join('\n')}\n\nTip: ${d.tip}`)}
+      ${googleBtn(d.name + ' recipe')}
     </div>`,
   { name: 'Lemon Butter Pasta', ingredients: ['200g spaghetti', '2 tbsp butter', '1 lemon (zest + juice)', '2 garlic cloves, minced', 'parmesan, to serve', 'salt & pepper'], steps: ['Cook pasta in well-salted boiling water, reserve ½ cup pasta water before draining.', 'Melt butter in a wide pan, add garlic, cook 1 min over medium heat.', 'Add drained pasta, lemon zest, and lemon juice. Toss well.', 'Splash in pasta water a little at a time until the sauce coats the noodles.', 'Season, plate, and shower with parmesan.'], tip: 'The starchy pasta water is what makes it silky — don\'t skip it.' }
 );
@@ -802,6 +847,7 @@ ${dismissed.length ? `Avoid these: ${dismissed.slice(-20).join(', ')}` : ''}`,
       <div class="card-field"><span class="field-label">The science</span>${d.science_explanation}</div>
       <div class="card-field"><span class="field-label">Try it</span>${d.how_to_use}</div>
       ${cardFooter('flavor', id, `${d.pairing}\n\nThe science: ${d.science_explanation}\n\nHow to use it: ${d.how_to_use}`)}
+      ${googleBtn(d.pairing + ' flavor pairing')}
     </div>`,
   { pairing: 'Strawberry + Black Pepper', science_explanation: 'Both share the volatile compound linalool. Fresh pepper\'s piperine sharpens the berry\'s esters and makes its sweetness pop by contrast.', how_to_use: 'Slice fresh strawberries, grind black pepper generously over them with a pinch of sugar. Let sit 10 minutes before eating.' }
 );
