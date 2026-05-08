@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="for amannda">
-  <title>for amannda 🌸</title>
+  <meta name="apple-mobile-web-app-title" content="for Amanda">
+  <title>for Amanda</title>
   <link rel="manifest" href="manifest.json">
   <style>
     :root {
@@ -57,8 +57,9 @@
     .screen-title { font-size: 1.1rem; font-weight: 600; flex: 1; }
     .header-actions { display: flex; gap: 4px; }
     .header-btn {
-      background: none; border: none; font-size: 1.25rem;
+      background: none; border: none; font-size: 0.8rem;
       cursor: pointer; padding: 6px 8px; border-radius: 8px;
+      color: var(--text-muted); font-weight: 500; letter-spacing: 0.01em;
     }
     .header-btn:active { background: var(--bg2); }
 
@@ -90,13 +91,12 @@
     }
     .activity-card {
       background: var(--card); border-radius: var(--radius); padding: 22px 16px;
-      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      display: flex; flex-direction: column; align-items: flex-start; gap: 0;
       cursor: pointer; box-shadow: var(--shadow); border: 1px solid var(--border);
-      transition: transform 0.12s; user-select: none;
+      transition: transform 0.12s; user-select: none; min-height: 80px; justify-content: flex-end;
     }
     .activity-card:active { transform: scale(0.96); }
-    .card-icon { font-size: 2rem; }
-    .card-label { font-size: 0.82rem; font-weight: 600; text-align: center; }
+    .card-label { font-size: 0.88rem; font-weight: 600; text-align: left; line-height: 1.3; }
 
     .random-btn {
       margin: 0 20px 24px; background: var(--accent); color: white; border: none;
@@ -285,10 +285,10 @@
 ══════════════════════════════════════ -->
 <div id="screen-home" class="screen active">
   <div class="home-header">
-    <div class="app-title">for amannda 🌸</div>
+    <div class="app-title">for Amanda</div>
     <div class="header-actions">
-      <button class="header-btn" onclick="navTo('saved')">🔖</button>
-      <button class="header-btn" onclick="navTo('settings')">⚙️</button>
+      <button class="header-btn" onclick="navTo('saved')">saved</button>
+      <button class="header-btn" onclick="navTo('settings')">settings</button>
     </div>
   </div>
 
@@ -301,7 +301,7 @@
 
   <div id="activity-grid" class="activity-grid"></div>
 
-  <button class="random-btn" onclick="pickRandom()">✨ Surprise me</button>
+  <button class="random-btn" onclick="pickRandom()">Surprise me</button>
 </div>
 
 <!-- ══════════════════════════════════════
@@ -541,10 +541,10 @@ function cardFooter(slug, id, journalText) {
   const eJournal = encodeURIComponent(journalText);
   return `
     <div class="card-footer">
-      <button class="footer-btn" title="Love it" onclick="rateCard(decodeURIComponent('${eSlug}'),decodeURIComponent('${eId}'),'liked',this)">👍</button>
-      <button class="footer-btn" title="Not for me" onclick="rateCard(decodeURIComponent('${eSlug}'),decodeURIComponent('${eId}'),'disliked',this)">👎</button>
-      <button class="footer-btn" title="Save" onclick="bookmarkCard(decodeURIComponent('${eSlug}'),decodeURIComponent('${eId}'),this)">🔖</button>
-      <button class="footer-btn" title="Journal" onclick="journalToNote(decodeURIComponent('${eJournal}'))">📓</button>
+      <button class="footer-btn" title="Love it" onclick="rateCard(decodeURIComponent('${eSlug}'),decodeURIComponent('${eId}'),'liked',this)">♡</button>
+      <button class="footer-btn" title="Not for me" onclick="rateCard(decodeURIComponent('${eSlug}'),decodeURIComponent('${eId}'),'disliked',this)">✕</button>
+      <button class="footer-btn" title="Save" onclick="bookmarkCard(decodeURIComponent('${eSlug}'),decodeURIComponent('${eId}'),this)">↓</button>
+      <button class="footer-btn" title="Journal" onclick="journalToNote(decodeURIComponent('${eJournal}'))">✎</button>
       <button class="footer-btn" title="Next" onclick="loaders[decodeURIComponent('${eSlug}')]()">→</button>
     </div>`;
 }
@@ -606,7 +606,7 @@ function journalToNote(text) {
 // ─────────────────────────────────────────
 function googleBtn(query) {
   const url = 'https://www.google.com/search?q=' + encodeURIComponent(query);
-  return `<button class="google-btn" onclick="window.open('${url}','_blank')">🔍 Google it</button>`;
+  return `<button class="google-btn" onclick="window.open('${url}','_blank')">Google it</button>`;
 }
 
 // ─────────────────────────────────────────
@@ -637,7 +637,7 @@ function startTimer(minutes) {
   const sub     = document.getElementById('timer-sub');
 
   modal.classList.add('active');
-  sub.textContent = 'Keep going 🌸';
+  sub.textContent = 'Keep going';
 
   const tick = () => {
     const m = Math.floor(secs / 60);
@@ -646,7 +646,7 @@ function startTimer(minutes) {
     if (secs <= 0) {
       clearInterval(timerInterval);
       timerInterval = null;
-      sub.textContent = 'All done ✨';
+      sub.textContent = 'All done';
       playChime();
     }
     secs--;
@@ -702,7 +702,7 @@ function makeLoader(slug, promptFn, renderFn, fallback, onAfterRender) {
     const disliked  = get(`disliked_${slug}`, []);
 
     if (!localStorage.getItem('apiKey')) {
-      el.innerHTML = '<div class="error">Add your Anthropic API key in ⚙️ Settings to get started.</div>';
+      el.innerHTML = '<div class="error">Add your Anthropic API key in Settings to get started.</div>';
       return;
     }
 
@@ -866,7 +866,7 @@ ${dismissed.length ? `Avoid these themes: ${dismissed.slice(-20).join(', ')}` : 
       <div class="card-tag">Reflection</div>
       <div class="card-body reflection-prompt">${d.prompt}</div>
       <div class="card-field" style="margin-top:8px"><span class="field-label">Go deeper</span>${d.follow_up}</div>
-      <button class="journal-cta" onclick="journalToNote(decodeURIComponent('${encodeURIComponent(d.prompt + '\n\n' + d.follow_up + '\n\n')}'))">📓 Open journal</button>
+      <button class="journal-cta" onclick="journalToNote(decodeURIComponent('${encodeURIComponent(d.prompt + '\n\n' + d.follow_up + '\n\n')}'))">Open journal</button>
       ${cardFooter('reflection', id, `${d.prompt}\n\n${d.follow_up}\n\n`)}
     </div>`,
   { prompt: 'What is one small thing from this week that made you feel like yourself?', follow_up: 'What does that moment tell you about what you actually need more of?' }
@@ -1028,7 +1028,6 @@ function buildHomeGrid() {
   const grid = document.getElementById('activity-grid');
   grid.innerHTML = ACTIVITIES.map(a => `
     <div class="activity-card" data-activity="${a.slug}" onclick="navTo('${a.slug}')">
-      <div class="card-icon">${a.icon}</div>
       <div class="card-label">${a.name}</div>
     </div>`).join('');
 }
