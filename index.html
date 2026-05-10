@@ -660,11 +660,26 @@ function googleBtn(query) {
 async function fetchWikiImage(query, wrapEl) {
   if (!wrapEl) return;
   try {
+    // Try direct title first
     const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
-    if (!res.ok) return;
-    const data = await res.json();
-    if (data.thumbnail?.source) {
-      wrapEl.innerHTML = `<img class="card-img" src="${data.thumbnail.source}" alt="${query}">`;
+    if (res.ok) {
+      const data = await res.json();
+      if (data.thumbnail?.source) {
+        wrapEl.innerHTML = `<img class="card-img" src="${data.thumbnail.source}" alt="${query}">`;
+        return;
+      }
+    }
+    // Fall back to search API
+    const searchRes = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srlimit=1&format=json&origin=*`);
+    if (!searchRes.ok) return;
+    const searchData = await searchRes.json();
+    const title = searchData.query?.search?.[0]?.title;
+    if (!title) return;
+    const res2 = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`);
+    if (!res2.ok) return;
+    const data2 = await res2.json();
+    if (data2.thumbnail?.source) {
+      wrapEl.innerHTML = `<img class="card-img" src="${data2.thumbnail.source}" alt="${query}">`;
     }
   } catch {}
 }
@@ -1222,7 +1237,7 @@ ${dismissed.length ? `Avoid these styles: ${dismissed.slice(-20).join(', ')}` : 
       ${googleBtn(d.style_name + ' interior design style')}
     </div>`,
   { style_name: 'Japandi', era: '2010s–present', origin: 'Japan & Scandinavia', description: 'A hybrid of Japanese wabi-sabi and Scandinavian hygge, Japandi spaces feel stripped back but deeply warm — every object is deliberate, every surface textural. It prizes function, imperfection, and calm above all else.', key_elements: 'Natural woods, muted earth tones, handmade ceramics, low furniture, organic shapes', famous_example: 'Muji\'s flagship store interiors and Norm Architects\' residential projects in Copenhagen' },
-  (data, el) => fetchWikiImage(data.style_name + ' interior', el.querySelector('.card-img-wrap'))
+  (data, el) => fetchWikiImage(data.style_name, el.querySelector('.card-img-wrap'))
 );
 
 function toggleBreathe() { breatheRunning ? stopBreathe() : startBreathe(); }
