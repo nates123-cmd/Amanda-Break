@@ -508,6 +508,14 @@ function navTo(slug, skipLoad = false) {
 // ─────────────────────────────────────────
 // CARD FOOTER
 // ─────────────────────────────────────────
+function shareCard(text) {
+  if (navigator.share) {
+    navigator.share({ text }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(text).catch(() => {});
+  }
+}
+
 function cardFooter(slug, id, journalText) {
   const eSlug    = encodeURIComponent(slug);
   const eId      = encodeURIComponent(id);
@@ -518,6 +526,7 @@ function cardFooter(slug, id, journalText) {
       <button class="footer-btn" title="Not for me" onclick="rateCard(decodeURIComponent('${eSlug}'),decodeURIComponent('${eId}'),'disliked',this)">✕</button>
       <button class="footer-btn" title="Save" onclick="bookmarkCard(decodeURIComponent('${eSlug}'),decodeURIComponent('${eId}'),this)">↓</button>
       <button class="footer-btn" title="Journal" onclick="journalToNote(decodeURIComponent('${eJournal}'))">✎</button>
+      <button class="footer-btn" title="Share" onclick="shareCard(decodeURIComponent('${eJournal}'))">↗</button>
       <button class="footer-btn" title="Next" onclick="loaders[decodeURIComponent('${eSlug}')]()">→</button>
     </div>`;
 }
