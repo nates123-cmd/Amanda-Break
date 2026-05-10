@@ -1216,13 +1216,14 @@ ${dismissed.length ? `Avoid these pairings: ${dismissed.slice(-20).join(', ')}` 
 loaders.interior = makeLoader(
   'interior',
   ({ dismissed }) => `You are an interior design historian and stylist. Return ONLY a valid JSON object with no markdown fences.
-Spotlight one named interior design style or movement. Shape: {"style_name":"...","era":"...","origin":"...","description":"...","key_elements":"...","famous_example":"..."}
+Spotlight one named interior design style or movement. Shape: {"style_name":"...","era":"...","origin":"...","description":"...","key_elements":"...","famous_example":"...","wiki_image":"..."}
 style_name: the specific named style (e.g. Japandi, Wabi-Sabi, Art Deco, Biophilic, Memphis, Bauhaus)
 era: decade or period it emerged
 origin: country or cultural context
 description: 2-3 sentences on what defines it and how it feels to be in a space designed this way
 key_elements: 3-4 specific design elements, materials, or colors that characterize it
 famous_example: a real room, building, designer, or hotel that embodies it
+wiki_image: the exact title of a Wikipedia article that would have a strong, relevant photo for this style — prefer a specific iconic building, room, or artwork over the style name itself (e.g. for Art Deco use "Chrysler Building", for Bauhaus use "Bauhaus Dessau", for Minimalism use "Fallingwater")
 ${dismissed.length ? `Avoid these styles: ${dismissed.slice(-20).join(', ')}` : ''}`,
   (d, id) => `
     <div class="content-card">
@@ -1236,8 +1237,8 @@ ${dismissed.length ? `Avoid these styles: ${dismissed.slice(-20).join(', ')}` : 
       ${cardFooter('interior', id, `${d.style_name} (${d.era})\n\n${d.description}\n\nKey elements: ${d.key_elements}\n\nExample: ${d.famous_example}`)}
       ${googleBtn(d.style_name + ' interior design style')}
     </div>`,
-  { style_name: 'Japandi', era: '2010s–present', origin: 'Japan & Scandinavia', description: 'A hybrid of Japanese wabi-sabi and Scandinavian hygge, Japandi spaces feel stripped back but deeply warm — every object is deliberate, every surface textural. It prizes function, imperfection, and calm above all else.', key_elements: 'Natural woods, muted earth tones, handmade ceramics, low furniture, organic shapes', famous_example: 'Muji\'s flagship store interiors and Norm Architects\' residential projects in Copenhagen' },
-  (data, el) => fetchWikiImage(data.style_name, el.querySelector('.card-img-wrap'))
+  { style_name: 'Japandi', era: '2010s–present', origin: 'Japan & Scandinavia', description: 'A hybrid of Japanese wabi-sabi and Scandinavian hygge, Japandi spaces feel stripped back but deeply warm — every object is deliberate, every surface textural. It prizes function, imperfection, and calm above all else.', key_elements: 'Natural woods, muted earth tones, handmade ceramics, low furniture, organic shapes', famous_example: 'Muji\'s flagship store interiors and Norm Architects\' residential projects in Copenhagen', wiki_image: 'Japanese architecture' },
+  (data, el) => fetchWikiImage(data.wiki_image || data.style_name, el.querySelector('.card-img-wrap'))
 );
 
 function toggleBreathe() { breatheRunning ? stopBreathe() : startBreathe(); }
