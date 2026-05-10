@@ -115,6 +115,19 @@
     .card-img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .card-img-wrap:empty { display: none; }
 
+    /* ── Weather ── */
+    .wx-current { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+    .wx-chip { background: var(--bg2); border-radius: 20px; padding: 5px 12px; font-size: 0.8rem; color: var(--text); border: 1px solid var(--border); }
+    .wx-forecast { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 16px; }
+    .wx-day { display: flex; flex-direction: column; align-items: center; gap: 4px; background: var(--bg2); border-radius: 10px; padding: 10px 12px; min-width: 58px; border: 1px solid var(--border); font-size: 0.78rem; }
+    .wx-day-name { font-weight: 700; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; }
+    .wx-day-icon { font-size: 1.3rem; }
+    .wx-day-temps { color: var(--text); font-size: 0.75rem; }
+    .wx-day-precip { color: var(--text-muted); font-size: 0.68rem; }
+    /* ── Pairing ── */
+    .pairing-items { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+    .pairing-item { flex: 1; background: var(--bg2); border-radius: 10px; padding: 14px 10px; text-align: center; font-weight: 700; font-size: 0.95rem; border: 1px solid var(--border); }
+    .pairing-x { font-size: 1.2rem; color: var(--text-muted); flex-shrink: 0; }
     /* ── Card footer ── */
     .card-footer {
       display: flex; justify-content: space-around; align-items: center;
@@ -399,6 +412,50 @@
 </div>
 
 <!-- ══════════════════════════════════════
+     GOOD NEWS
+══════════════════════════════════════ -->
+<div id="screen-good-news" class="screen">
+  <div class="screen-header">
+    <button class="back-btn" onclick="navTo('home')">←</button>
+    <span class="screen-title">Good News</span>
+  </div>
+  <div id="good-news-content" class="screen-body"></div>
+</div>
+
+<!-- ══════════════════════════════════════
+     WEATHER
+══════════════════════════════════════ -->
+<div id="screen-weather" class="screen">
+  <div class="screen-header">
+    <button class="back-btn" onclick="navTo('home')">←</button>
+    <span class="screen-title">Weather</span>
+  </div>
+  <div id="weather-content" class="screen-body"></div>
+</div>
+
+<!-- ══════════════════════════════════════
+     UNEXPECTED PAIRING
+══════════════════════════════════════ -->
+<div id="screen-pairing" class="screen">
+  <div class="screen-header">
+    <button class="back-btn" onclick="navTo('home')">←</button>
+    <span class="screen-title">Unexpected Pairing</span>
+  </div>
+  <div id="pairing-content" class="screen-body"></div>
+</div>
+
+<!-- ══════════════════════════════════════
+     INTERIOR SPOTLIGHT
+══════════════════════════════════════ -->
+<div id="screen-interior" class="screen">
+  <div class="screen-header">
+    <button class="back-btn" onclick="navTo('home')">←</button>
+    <span class="screen-title">Interior Spotlight</span>
+  </div>
+  <div id="interior-content" class="screen-body"></div>
+</div>
+
+<!-- ══════════════════════════════════════
      BREATHE
 ══════════════════════════════════════ -->
 <div id="screen-breathe" class="screen">
@@ -449,6 +506,10 @@ const ACTIVITIES = [
   { slug: 'flavor',     name: 'Flavor Pairing',        bucket: 'activity',      icon: 'grape' },
   { slug: 'room',       name: 'Room Refresh',          bucket: 'activity',      icon: 'sofa' },
   { slug: 'breathe',    name: 'Breathe',               bucket: 'reflection',    icon: 'wind', static: true },
+  { slug: 'good-news',  name: 'Good News',             bucket: 'informational', icon: 'sun' },
+  { slug: 'weather',    name: 'Weather',               bucket: 'informational', icon: 'cloud-sun' },
+  { slug: 'pairing',    name: 'Unexpected Pairing',    bucket: 'informational', icon: 'shuffle' },
+  { slug: 'interior',   name: 'Interior Spotlight',    bucket: 'informational', icon: 'frame' },
 ];
 
 const BUCKETS = {
@@ -1009,6 +1070,161 @@ const BREATHE_DURATIONS = [4, 4, 4, 4];
 
 loaders.breathe = function() {};
 
+// ─────────────────────────────────────────
+// GOOD NEWS
+// ─────────────────────────────────────────
+loaders['good-news'] = makeLoader(
+  'good-news',
+  ({ dismissed }) => `You are an optimistic journalist. Return ONLY a valid JSON object with no markdown fences.
+Share one genuinely uplifting real-world development — something from science, environment, medicine, community, or human achievement. Shape: {"headline":"...","summary":"...","why_it_matters":"...","source_hint":"..."}
+headline: compelling, specific, 1 sentence
+summary: 2-3 sentences, concrete and warm
+why_it_matters: 1 sentence on the broader significance
+source_hint: the organization, country, or field this comes from (no URLs)
+${dismissed.length ? `Avoid these topics: ${dismissed.slice(-20).join(', ')}` : ''}`,
+  (d, id) => `
+    <div class="content-card">
+      <div class="card-tag">Good News</div>
+      <div class="card-title">${d.headline}</div>
+      <div class="card-body">${d.summary}</div>
+      <div class="card-field"><span class="field-label">Why it matters</span>${d.why_it_matters}</div>
+      <div class="card-field"><span class="field-label">Source</span>${d.source_hint}</div>
+      ${cardFooter('good-news', id, `${d.headline}\n\n${d.summary}\n\nWhy it matters: ${d.why_it_matters}`)}
+      ${googleBtn(d.headline)}
+    </div>`,
+  { headline: 'Scientists successfully restore hearing in adults with genetic deafness', summary: 'A gene therapy trial delivered a working copy of the OTOF gene directly into the inner ear, restoring functional hearing in participants who had been deaf since birth. Results held at the 12-month follow-up.', why_it_matters: 'It marks the first time gene therapy has been proven to restore a lost sense in adult humans.', source_hint: 'Harvard Medical School & Mass Eye and Ear' }
+);
+
+// ─────────────────────────────────────────
+// WEATHER
+// ─────────────────────────────────────────
+const WMO = {
+  0:'Clear sky', 1:'Mainly clear', 2:'Partly cloudy', 3:'Overcast',
+  45:'Fog', 48:'Icy fog', 51:'Light drizzle', 53:'Drizzle', 55:'Heavy drizzle',
+  61:'Light rain', 63:'Rain', 65:'Heavy rain', 71:'Light snow', 73:'Snow',
+  75:'Heavy snow', 80:'Rain showers', 81:'Rain showers', 95:'Thunderstorm'
+};
+const WMO_EMOJI = {
+  0:'☀️', 1:'🌤', 2:'⛅️', 3:'☁️', 45:'🌫', 48:'🌫',
+  51:'🌦', 53:'🌦', 55:'🌧', 61:'🌧', 63:'🌧', 65:'🌧',
+  71:'🌨', 73:'🌨', 75:'🌨', 80:'🌦', 81:'🌧', 95:'⛈'
+};
+function wmoLabel(code) { return WMO[code] || 'Mixed'; }
+function wmoEmoji(code) { return WMO_EMOJI[code] || '🌡'; }
+
+loaders.weather = async function() {
+  const el = document.getElementById('weather-content');
+  el.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  const city = localStorage.getItem('city') || 'New York';
+  try {
+    const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en&format=json`);
+    const geoData = await geoRes.json();
+    const loc = geoData.results?.[0];
+    if (!loc) throw new Error('City not found');
+
+    const wxRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${loc.latitude}&longitude=${loc.longitude}&current=temperature_2m,weather_code,wind_speed_10m,relative_humidity_2m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weather_code&temperature_unit=fahrenheit&wind_speed_unit=mph&forecast_days=5&timezone=auto`);
+    const wx = await wxRes.json();
+    const cur = wx.current;
+    const conditionStr = `${wmoLabel(cur.weather_code)}, ${Math.round(cur.temperature_2m)}°F, humidity ${cur.relative_humidity_2m}%, wind ${Math.round(cur.wind_speed_10m)} mph`;
+
+    let claudeFact = { fact: '', connection: '' };
+    if (localStorage.getItem('apiKey')) {
+      claudeFact = await callClaude(`You are a curious science communicator. Return ONLY a valid JSON object with no markdown fences.
+Current weather in ${loc.name}: ${conditionStr}.
+Share one surprising science fact that connects to these conditions. Shape: {"fact":"...","connection":"..."}
+fact: an interesting weather or atmospheric science fact (2-3 sentences)
+connection: one sentence tying it to today's specific conditions`);
+    }
+
+    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const forecastHtml = wx.daily.time.map((t, i) => {
+      const d = new Date(t + 'T12:00:00');
+      return `<div class="wx-day">
+        <div class="wx-day-name">${days[d.getDay()]}</div>
+        <div class="wx-day-icon">${wmoEmoji(wx.daily.weather_code[i])}</div>
+        <div class="wx-day-temps">${Math.round(wx.daily.temperature_2m_max[i])}° / ${Math.round(wx.daily.temperature_2m_min[i])}°</div>
+        <div class="wx-day-precip">${wx.daily.precipitation_probability_max[i]}% 💧</div>
+      </div>`;
+    }).join('');
+
+    const id = `${loc.name}-${Date.now()}`;
+    el.innerHTML = `
+      <div class="content-card">
+        <div class="card-tag">Weather · ${loc.name}</div>
+        <div class="card-title">${wmoEmoji(cur.weather_code)} ${wmoLabel(cur.weather_code)}</div>
+        <div class="wx-current">
+          <span class="wx-chip">🌡 ${Math.round(cur.temperature_2m)}°F</span>
+          <span class="wx-chip">💧 ${cur.relative_humidity_2m}%</span>
+          <span class="wx-chip">💨 ${Math.round(cur.wind_speed_10m)} mph</span>
+        </div>
+        <div class="wx-forecast">${forecastHtml}</div>
+        ${claudeFact.fact ? `<div class="card-field"><span class="field-label">Did you know</span>${claudeFact.fact}</div>
+        <div class="card-field"><span class="field-label">Today's connection</span>${claudeFact.connection}</div>` : ''}
+        ${cardFooter('weather', id, `${wmoLabel(cur.weather_code)} in ${loc.name}\n\n${claudeFact.fact}\n\n${claudeFact.connection}`)}
+        ${googleBtn(`${loc.name} weather`)}
+      </div>`;
+    addSwipeListener(el.querySelector('.content-card'), 'weather', id, loaders.weather);
+  } catch(e) {
+    el.innerHTML = '<div class="error">Could not load weather. Make sure your city is set in Settings.</div>';
+  }
+};
+
+// ─────────────────────────────────────────
+// UNEXPECTED PAIRING
+// ─────────────────────────────────────────
+loaders.pairing = makeLoader(
+  'pairing',
+  ({ dismissed }) => `You are a creative thinker who finds unexpected harmony. Return ONLY a valid JSON object with no markdown fences.
+Suggest two things that seem like they shouldn't go together but actually do — colors, textures, scents, design styles, music genres, time periods, materials, anything. Shape: {"item_a":"...","item_b":"...","why_unexpected":"...","why_it_works":"...","try_it":"..."}
+Be specific and evocative. Avoid food pairings (those have their own card).
+${dismissed.length ? `Avoid these pairings: ${dismissed.slice(-20).join(', ')}` : ''}`,
+  (d, id) => `
+    <div class="content-card">
+      <div class="card-tag">Unexpected Pairing</div>
+      <div class="pairing-items">
+        <div class="pairing-item">${d.item_a}</div>
+        <div class="pairing-x">×</div>
+        <div class="pairing-item">${d.item_b}</div>
+      </div>
+      <div class="card-field"><span class="field-label">Why it's surprising</span>${d.why_unexpected}</div>
+      <div class="card-field"><span class="field-label">Why it works</span>${d.why_it_works}</div>
+      <div class="card-field"><span class="field-label">Try it</span>${d.try_it}</div>
+      ${cardFooter('pairing', id, `${d.item_a} × ${d.item_b}\n\nWhy surprising: ${d.why_unexpected}\nWhy it works: ${d.why_it_works}\nTry: ${d.try_it}`)}
+      ${googleBtn(`${d.item_a} ${d.item_b} pairing`)}
+    </div>`,
+  { item_a: 'Brutalist concrete', item_b: 'Soft blush linen', why_unexpected: 'Raw industrial material meets the most delicate of fabrics — one is associated with severity, the other with tenderness.', why_it_works: 'The contrast makes both elements feel more intentional. The concrete grounds the room; the linen softens it just enough to feel livable.', try_it: 'Drape a blush linen throw over a concrete or stone surface — a coffee table, windowsill, or raw shelf.' }
+);
+
+// ─────────────────────────────────────────
+// INTERIOR SPOTLIGHT
+// ─────────────────────────────────────────
+loaders.interior = makeLoader(
+  'interior',
+  ({ dismissed }) => `You are an interior design historian and stylist. Return ONLY a valid JSON object with no markdown fences.
+Spotlight one named interior design style or movement. Shape: {"style_name":"...","era":"...","origin":"...","description":"...","key_elements":"...","famous_example":"..."}
+style_name: the specific named style (e.g. Japandi, Wabi-Sabi, Art Deco, Biophilic, Memphis, Bauhaus)
+era: decade or period it emerged
+origin: country or cultural context
+description: 2-3 sentences on what defines it and how it feels to be in a space designed this way
+key_elements: 3-4 specific design elements, materials, or colors that characterize it
+famous_example: a real room, building, designer, or hotel that embodies it
+${dismissed.length ? `Avoid these styles: ${dismissed.slice(-20).join(', ')}` : ''}`,
+  (d, id) => `
+    <div class="content-card">
+      <div class="card-img-wrap"></div>
+      <div class="card-tag">Interior Spotlight · ${d.era}</div>
+      <div class="card-title">${d.style_name}</div>
+      <div class="card-field"><span class="field-label">Origin</span>${d.origin}</div>
+      <div class="card-body">${d.description}</div>
+      <div class="card-field"><span class="field-label">Key elements</span>${d.key_elements}</div>
+      <div class="card-field"><span class="field-label">Famous example</span>${d.famous_example}</div>
+      ${cardFooter('interior', id, `${d.style_name} (${d.era})\n\n${d.description}\n\nKey elements: ${d.key_elements}\n\nExample: ${d.famous_example}`)}
+      ${googleBtn(d.style_name + ' interior design style')}
+    </div>`,
+  { style_name: 'Japandi', era: '2010s–present', origin: 'Japan & Scandinavia', description: 'A hybrid of Japanese wabi-sabi and Scandinavian hygge, Japandi spaces feel stripped back but deeply warm — every object is deliberate, every surface textural. It prizes function, imperfection, and calm above all else.', key_elements: 'Natural woods, muted earth tones, handmade ceramics, low furniture, organic shapes', famous_example: 'Muji\'s flagship store interiors and Norm Architects\' residential projects in Copenhagen' },
+  (data, el) => fetchWikiImage(data.style_name + ' interior', el.querySelector('.card-img-wrap'))
+);
+
 function toggleBreathe() { breatheRunning ? stopBreathe() : startBreathe(); }
 
 function startBreathe() {
@@ -1125,7 +1341,11 @@ const ICONS = {
   recipe: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6 2v6a6 6 0 0 0 12 0V2"/><line x1="12" y1="2" x2="12" y2="8"/><path d="M6 14h12l-1 8H7l-1-8z"/></svg>`,
   flavor: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8 2c0 4-4 6-4 10a7 7 0 0 0 14 0c0-4-4-6-4-10"/><path d="M12 2c0 4-2 6-2 10"/></svg>`,
   room: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>`,
-  breathe: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 22c0-4-4-7-4-11a4 4 0 0 1 8 0c0 4-4 7-4 11z"/><path d="M16 6c2 0 4 1.5 4 3.5 0 1.5-1 2.5-3 3"/><path d="M8 6C6 6 4 7.5 4 9.5 4 11 5 12 7 12.5"/></svg>`,
+  breathe:   `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 22c0-4-4-7-4-11a4 4 0 0 1 8 0c0 4-4 7-4 11z"/><path d="M16 6c2 0 4 1.5 4 3.5 0 1.5-1 2.5-3 3"/><path d="M8 6C6 6 4 7.5 4 9.5 4 11 5 12 7 12.5"/></svg>`,
+  'good-news':`<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`,
+  weather:   `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2v2M4.93 4.93l1.41 1.41M2 12h2M4.93 19.07l1.41-1.41"/><circle cx="12" cy="12" r="3"/><path d="M16.5 9.5A4.5 4.5 0 0 1 21 14a4 4 0 0 1-4 4H7a5 5 0 1 1 4.9-6"/></svg>`,
+  pairing:   `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6"/></svg>`,
+  interior:  `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="18" height="18" rx="2"/><rect x="7" y="7" width="10" height="10" rx="1"/></svg>`,
 };
 
 function buildHomeGrid() {
