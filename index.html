@@ -524,7 +524,7 @@ function cardFooter(slug, id, journalText) {
     <div class="card-footer">
       <button class="footer-btn" title="Love it" onclick="rateCard(decodeURIComponent('${eSlug}'),decodeURIComponent('${eId}'),'liked',this)">♡</button>
       <button class="footer-btn" title="Not for me" onclick="rateCard(decodeURIComponent('${eSlug}'),decodeURIComponent('${eId}'),'disliked',this)">✕</button>
-      <button class="footer-btn" title="Save" onclick="bookmarkCard(decodeURIComponent('${eSlug}'),decodeURIComponent('${eId}'),this)">↓</button>
+      <button class="footer-btn" title="Save" onclick="bookmarkCard(decodeURIComponent('${eSlug}'),decodeURIComponent('${eId}'),this)">🔖</button>
       <button class="footer-btn" title="Journal" onclick="journalToNote(decodeURIComponent('${eJournal}'))">✎</button>
       <button class="footer-btn" title="Share" onclick="shareCard(decodeURIComponent('${eJournal}'))">↗</button>
       <button class="footer-btn" title="Next" onclick="loaders[decodeURIComponent('${eSlug}')]()">→</button>
@@ -544,15 +544,17 @@ function rateCard(slug, id, rating, btn) {
 function bookmarkCard(slug, id, btn) {
   const card = btn.closest('.content-card');
   const bookmarks = get('bookmarks', []);
-  if (bookmarks.find(b => b.id === id && b.slug === slug)) { btn.textContent = '✓'; return; }
+  if (bookmarks.find(b => b.id === id && b.slug === slug)) { btn.textContent = '🔖'; return; }
+  const anchor = card.querySelector('a[href]');
   bookmarks.unshift({
     id, slug,
-    html: card.outerHTML,
+    cardHtml: card.outerHTML,
     title: card.querySelector('.card-title')?.textContent || id,
-    timestamp: Date.now(),
+    url: anchor ? anchor.href : null,
+    savedAt: Date.now(),
   });
   set('bookmarks', bookmarks);
-  btn.textContent = '✓';
+  btn.textContent = '🔖';
 }
 
 // ─────────────────────────────────────────
@@ -661,7 +663,7 @@ function replayCard(index) {
   const b = get('bookmarks', [])[index];
   if (!b) return;
   const contentEl = document.getElementById(`${b.slug}-content`);
-  if (contentEl) contentEl.innerHTML = b.html;
+  if (contentEl) contentEl.innerHTML = b.cardHtml || b.html || '';
   navTo(b.slug, true);
 }
 
@@ -1056,15 +1058,21 @@ loaders.saved = function() {
   const bookmarks = get('bookmarks', []);
   const el = document.getElementById('saved-content');
   if (!bookmarks.length) {
-    el.innerHTML = '<div class="empty-state">No saved cards yet.<br>Tap ↓ on any card to save it.</div>';
+    el.innerHTML = '<div class="empty-state">No saved cards yet.<br>Tap 🔖 on any card to save it.</div>';
     return;
   }
-  el.innerHTML = bookmarks.map((b, i) => `
-    <div class="saved-card" onclick="replayCard(${i})">
-      <div class="saved-card-title">${b.title}</div>
-      <div class="saved-card-meta">${b.slug} · ${new Date(b.timestamp).toLocaleDateString()}</div>
-      <button class="saved-card-delete" onclick="event.stopPropagation(); deleteBookmark(${i})">✕</button>
-    </div>`).join('');
+  el.innerHTML = bookmarks.map((b, i) => {
+    const date = new Date(b.savedAt || b.timestamp).toLocaleDateString();
+    const slug = (b.slug || '').replace(/-/g, ' ');
+    const openLink = b.url ? `<a href="${b.url}" target="_blank" onclick="event.stopPropagation()" style="font-size:0.78rem;color:var(--accent);text-decoration:none;margin-top:6px;display:inline-block;">Open →</a>` : '';
+    return `
+      <div class="saved-card" onclick="replayCard(${i})">
+        <div class="saved-card-title">${b.title}</div>
+        <div class="saved-card-meta">${slug} · ${date}</div>
+        ${openLink}
+        <button class="saved-card-delete" onclick="event.stopPropagation(); deleteBookmark(${i})">✕</button>
+      </div>`;
+  }).join('');
 };
 
 function deleteBookmark(index) {
