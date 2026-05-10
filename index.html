@@ -430,7 +430,6 @@
   </div>
 </div>
 
-<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <script>
 // ─────────────────────────────────────────
 // ACTIVITIES
@@ -1095,13 +1094,29 @@ function clearData() {
 // ─────────────────────────────────────────
 let currentBucket = 'all';
 
+const ICONS = {
+  flower: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 12c0-2.5-2-5-2-7a2 2 0 0 1 4 0c0 2-2 4.5-2 7z"/><path d="M12 12c2.5 0 5-2 7-2a2 2 0 0 1 0 4c-2 0-4.5-2-7-2z"/><path d="M12 12c0 2.5 2 5 2 7a2 2 0 0 1-4 0c0-2 2-4.5 2-7z"/><path d="M12 12c-2.5 0-5 2-7 2a2 2 0 0 1 0-4c2 0 4.5 2 7 2z"/><circle cx="12" cy="12" r="2"/></svg>`,
+  color: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>`,
+  design: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
+  health: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>`,
+  science: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9 3h6v11l4 7H5l4-7V3z"/><line x1="9" y1="9" x2="15" y2="9"/></svg>`,
+  psychology: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2a7 7 0 0 1 7 7c0 2.5-1.5 4.8-3.5 6.2V18h-7v-2.8C6.5 13.8 5 11.5 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/><line x1="10" y1="18" x2="10" y2="22"/><line x1="14" y1="18" x2="14" y2="22"/></svg>`,
+  reflection: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>`,
+  mindful: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17 8C8 10 5.9 16.17 3.82 19.11a1 1 0 0 0 1.71 1C7 18 11 16 17 16"/><path d="M17 8a4 4 0 0 0-4-4 1 1 0 0 0 0 8"/><path d="M17 8a4 4 0 0 1 4 4 1 1 0 0 1-2 0"/></svg>`,
+  media: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>`,
+  weekend: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`,
+  recipe: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6 2v6a6 6 0 0 0 12 0V2"/><line x1="12" y1="2" x2="12" y2="8"/><path d="M6 14h12l-1 8H7l-1-8z"/></svg>`,
+  flavor: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8 2c0 4-4 6-4 10a7 7 0 0 0 14 0c0-4-4-6-4-10"/><path d="M12 2c0 4-2 6-2 10"/></svg>`,
+  room: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>`,
+  breathe: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 22c0-4-4-7-4-11a4 4 0 0 1 8 0c0 4-4 7-4 11z"/><path d="M16 6c2 0 4 1.5 4 3.5 0 1.5-1 2.5-3 3"/><path d="M8 6C6 6 4 7.5 4 9.5 4 11 5 12 7 12.5"/></svg>`,
+};
+
 function buildHomeGrid() {
   document.getElementById('activity-grid').innerHTML = ACTIVITIES.map(a => `
     <div class="activity-card" data-activity="${a.slug}" onclick="navTo('${a.slug}')">
-      <div class="card-icon"><i data-lucide="${a.icon}"></i></div>
+      <div class="card-icon">${ICONS[a.slug] || ''}</div>
       <div class="card-label">${a.name}</div>
     </div>`).join('');
-  if (window.lucide) lucide.createIcons();
 }
 
 function filterActivities(bucket) {
