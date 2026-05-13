@@ -890,6 +890,12 @@ function makeLoader(slug, promptFn, renderFn, fallback, onAfterRender) {
         (data.item_a && data.item_b ? `${data.item_a} × ${data.item_b}` : '') ||
         Date.now()
       );
+      // Auto-track every shown card as dismissed so reopening a tile doesn't repeat.
+      // Cap the stored list at 100 to bound localStorage; Claude only sees the last 20 via slice(-20).
+      if (id && !dismissed.includes(id)) {
+        dismissed.push(id);
+        set(`dismissed_${slug}`, dismissed.slice(-100));
+      }
       el.innerHTML = renderFn(data, id);
       addSwipeListener(el.querySelector('.content-card'), slug, id, load);
       if (onAfterRender) onAfterRender(data, el);
