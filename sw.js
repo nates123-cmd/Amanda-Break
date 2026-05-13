@@ -1,4 +1,4 @@
-const CACHE = 'amannda-break-v13';
+const CACHE = 'amannda-break-v15';
 const ASSETS = ['./', './index.html', './manifest.json'];
 
 self.addEventListener('install', e => {
@@ -16,7 +16,10 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  // Only cache-first for same-origin non-API requests
+  const url = new URL(e.request.url);
+  // Dev: bypass cache entirely on localhost so edits show up on reload
+  if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') return;
+  // Don't cache Anthropic API calls
   if (e.request.url.includes('anthropic.com')) return;
   e.respondWith(
     caches.match(e.request).then(cached => cached || fetch(e.request))

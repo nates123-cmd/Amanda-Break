@@ -8,6 +8,16 @@
   <meta name="apple-mobile-web-app-title" content="for Amanda">
   <title>for Amanda</title>
   <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#FAF7F2">
+  <!-- Warm up TLS for every API the app talks to, so the first card load isn't gated on DNS+handshake -->
+  <link rel="preconnect" href="https://api.anthropic.com" crossorigin>
+  <link rel="preconnect" href="https://en.wikipedia.org" crossorigin>
+  <link rel="preconnect" href="https://commons.wikimedia.org" crossorigin>
+  <link rel="preconnect" href="https://upload.wikimedia.org" crossorigin>
+  <link rel="preconnect" href="https://geocoding-api.open-meteo.com" crossorigin>
+  <link rel="preconnect" href="https://api.open-meteo.com" crossorigin>
+  <link rel="dns-prefetch" href="https://chatgpt.com">
+  <link rel="dns-prefetch" href="https://www.google.com">
   <style>
     :root {
       --bg: #FAF7F2;
@@ -70,6 +80,14 @@
       white-space: nowrap; color: var(--text); transition: all 0.15s;
     }
     .bucket-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+    .shuffle-btn {
+      background: var(--bg2); border: 1px solid var(--border); border-radius: 50%;
+      width: 30px; height: 30px; padding: 0; cursor: pointer; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text); transition: all 0.15s;
+    }
+    .shuffle-btn:active { background: var(--accent); border-color: var(--accent); color: white; }
+    .shuffle-btn svg { width: 14px; height: 14px; }
 
     .activity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 8px 20px 16px; }
     .activity-card {
@@ -82,13 +100,6 @@
     .activity-card:active { transform: scale(0.96); }
     .card-icon svg { width: 22px; height: 22px; stroke: var(--accent); stroke-width: 1.75; fill: none; }
     .card-label { font-size: 0.84rem; font-weight: 600; text-align: left; line-height: 1.3; margin-top: 14px; }
-
-    .random-btn {
-      margin: 0 20px 24px; background: var(--accent); color: white; border: none;
-      border-radius: 14px; padding: 15px; font-size: 1rem; font-weight: 600;
-      cursor: pointer; width: calc(100% - 40px);
-    }
-    .random-btn:active { opacity: 0.9; }
 
     /* ── Content cards ── */
     .content-card {
@@ -109,10 +120,15 @@
 
     /* ── Color swatch ── */
     .color-swatch { width: 100%; height: 130px; border-radius: 10px; margin-bottom: 18px; }
+    .pair-row { display: flex; gap: 8px; margin-top: 6px; }
+    .pair-chip { flex: 1; display: flex; flex-direction: column; align-items: stretch; gap: 4px; min-width: 0; }
+    .pair-chip .pair-swatch { width: 100%; height: 56px; border-radius: 8px; border: 1px solid var(--border); }
+    .pair-chip .pair-name { font-size: 0.78rem; font-weight: 500; color: var(--text); line-height: 1.2; }
+    .pair-chip .pair-hex { font-size: 0.68rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
 
     /* ── Flower image ── */
-    .card-img-wrap { margin: -22px -20px 18px; border-radius: var(--radius) var(--radius) 0 0; overflow: hidden; height: 200px; background: var(--bg2); }
-    .card-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .card-img-wrap { margin: -22px -20px 18px; border-radius: var(--radius) var(--radius) 0 0; overflow: hidden; height: 240px; background: var(--bg2); }
+    .card-img { width: 100%; height: 100%; object-fit: contain; display: block; }
     .card-img-wrap:empty { display: none; }
 
     /* ── Weather ── */
@@ -140,12 +156,13 @@
     .footer-btn:active { background: var(--bg2); }
     .footer-btn.active { opacity: 0.35; pointer-events: none; }
 
-    /* ── Google button ── */
+    /* ── Lookup buttons (Google / ChatGPT) ── */
+    .lookup-row { display: flex; gap: 8px; margin-top: 10px; }
     .google-btn {
-      display: flex; align-items: center; justify-content: center; gap: 6px;
-      width: 100%; background: var(--bg2); border: 1px solid var(--border);
+      flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+      background: var(--bg2); border: 1px solid var(--border);
       border-radius: 12px; padding: 11px; font-size: 0.88rem; cursor: pointer;
-      color: var(--text-muted); font-weight: 500; margin-top: 10px;
+      color: var(--text-muted); font-weight: 500;
     }
     .google-btn:active { background: var(--border); }
 
@@ -222,9 +239,11 @@
     <button class="bucket-btn" data-bucket="informational" onclick="filterActivities('informational')">Informational</button>
     <button class="bucket-btn" data-bucket="activity" onclick="filterActivities('activity')">Activity</button>
     <button class="bucket-btn" data-bucket="reflection" onclick="filterActivities('reflection')">Reflection</button>
+    <button class="shuffle-btn" onclick="pickRandom()" title="Surprise me" aria-label="Surprise me">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>
+    </button>
   </div>
   <div id="activity-grid" class="activity-grid"></div>
-  <button class="random-btn" onclick="pickRandom()">Surprise me</button>
 </div>
 
 <!-- ══════════════════════════════════════
@@ -569,35 +588,48 @@ function navTo(slug, skipLoad = false) {
 // ─────────────────────────────────────────
 // CARD FOOTER
 // ─────────────────────────────────────────
-function shareCard(text) {
+function shareCard(text, url) {
+  const payload = url ? { title: text.split('\n')[0], text, url } : { text };
   if (navigator.share) {
-    navigator.share({ text }).catch(() => {});
+    navigator.share(payload).catch(() => {});
   } else {
-    navigator.clipboard.writeText(text).catch(() => {});
+    navigator.clipboard.writeText(url || text).catch(() => {});
   }
 }
 
-function cardFooter(slug, id, journalText) {
+function cardFooter(slug, id, journalText, shareUrl) {
   const eSlug    = encodeURIComponent(slug);
   const eId      = encodeURIComponent(id);
   const eJournal = encodeURIComponent(journalText);
+  const eUrl     = encodeURIComponent(shareUrl || '');
   return `
     <div class="card-footer">
       <button class="footer-btn" title="Love it" onclick="rateCard(decodeURIComponent('${eSlug}'),decodeURIComponent('${eId}'),'liked',this)">♡</button>
       <button class="footer-btn" title="Not for me" onclick="rateCard(decodeURIComponent('${eSlug}'),decodeURIComponent('${eId}'),'disliked',this)">✕</button>
       <button class="footer-btn" title="Save" onclick="bookmarkCard(decodeURIComponent('${eSlug}'),decodeURIComponent('${eId}'),this)">🔖</button>
       <button class="footer-btn" title="Journal" onclick="journalToNote(decodeURIComponent('${eJournal}'))">✎</button>
-      <button class="footer-btn" title="Share" onclick="shareCard(decodeURIComponent('${eJournal}'))">↗</button>
-      <button class="footer-btn" title="Next" onclick="loaders[decodeURIComponent('${eSlug}')]()">→</button>
+      <button class="footer-btn" title="Share" onclick="shareCard(decodeURIComponent('${eJournal}'),decodeURIComponent('${eUrl}'))">↗</button>
+      <button class="footer-btn" title="Next" onclick="nextCard(decodeURIComponent('${eSlug}'),decodeURIComponent('${eId}'))">→</button>
     </div>`;
 }
 
 // ─────────────────────────────────────────
 // RATINGS & BOOKMARKS
 // ─────────────────────────────────────────
+function nextCard(slug, id) {
+  const arr = get(`dismissed_${slug}`, []);
+  if (id && !arr.includes(id)) { arr.push(id); set(`dismissed_${slug}`, arr); }
+  loaders[slug]();
+}
+
 function rateCard(slug, id, rating, btn) {
   const arr = get(`${rating}_${slug}`, []);
   if (!arr.includes(id)) { arr.push(id); set(`${rating}_${slug}`, arr); }
+  // Disliking implies "don't show this again" — also mark as dismissed
+  if (rating === 'disliked') {
+    const dArr = get(`dismissed_${slug}`, []);
+    if (!dArr.includes(id)) { dArr.push(id); set(`dismissed_${slug}`, dArr); }
+  }
   btn.classList.add('active');
   setTimeout(() => loaders[slug](), 500);
 }
@@ -650,38 +682,131 @@ function journalToNote(text) {
 // GOOGLE BUTTON
 // ─────────────────────────────────────────
 function googleBtn(query) {
-  const url = 'https://www.google.com/search?q=' + encodeURIComponent(query);
-  return `<button class="google-btn" onclick="window.open('${url}','_blank')">Google it</button>`;
+  const g = 'https://www.google.com/search?q=' + encodeURIComponent(query);
+  const c = 'https://chatgpt.com/?q=' + encodeURIComponent(`Tell me about: ${query}`);
+  return `<div class="lookup-row">
+    <button class="google-btn" onclick="window.open('${g}','_blank')">Google it</button>
+    <button class="google-btn" onclick="window.open('${c}','_blank')">Ask ChatGPT</button>
+  </div>`;
 }
 
 // ─────────────────────────────────────────
 // WIKIPEDIA IMAGE
 // ─────────────────────────────────────────
-async function fetchWikiImage(query, wrapEl) {
-  if (!wrapEl) return;
+// Focused interior-photo search: hits Commons with a tight query, filters out
+// people/events/exterior shots. Shows nothing rather than an irrelevant photo.
+async function fetchInteriorImage(searchQuery, wrapEl) {
+  if (!wrapEl || !searchQuery) return;
+  const fileToUrl = (t) => `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(t.replace(/^File:/, ''))}?width=1200`;
+  const setImg = (src) => {
+    if (!wrapEl.isConnected) return;
+    wrapEl.innerHTML = `<img class="card-img" src="${src}" alt="${searchQuery}">`;
+  };
+  // Acceptable formats only
+  const okFormat = (t) => /\.(jpe?g|png|webp)$/i.test(t);
+  // Exclude logos/icons/maps/diagrams + people/event photos + exteriors
+  const negative = /(logo|icon|commons-|edit-|wiki-|nuvola|symbol|flag of|coat of arms|map of|location map|press briefing|press conference|speech|signing|ceremony|ribbon cutting|wedding|gala|funeral|address by|visit to|meeting with|portrait of|posing|exterior|facade|aerial|from outside|from the street|view from|skyline|nighttime view)/i;
+  // Positive: must look like an interior shot
+  const positive = /(interior|lobby|living room|dining room|bedroom|kitchen|main hall|reading room|atrium|salon|parlor|inside|indoor|nave|chapel\b)/i;
+
   try {
-    // Try direct title first
-    const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
-    if (res.ok) {
-      const data = await res.json();
-      if (data.thumbnail?.source) {
-        wrapEl.innerHTML = `<img class="card-img" src="${data.thumbnail.source}" alt="${query}">`;
-        return;
-      }
+    const cRes = await fetch(`https://commons.wikimedia.org/w/api.php?action=query&list=search&srnamespace=6&srsearch=${encodeURIComponent(searchQuery)}&srlimit=30&format=json&origin=*`);
+    if (!cRes.ok) return;
+    const hits = (await cRes.json()).query?.search || [];
+    const titles = hits.map(h => h.title).filter(t => okFormat(t) && !negative.test(t));
+    const best = titles.find(t => positive.test(t)) || null;
+    if (best) setImg(fileToUrl(best));
+  } catch {}
+}
+
+async function fetchWikiImage(query, wrapEl, preferTerms = [], opts = {}) {
+  if (!wrapEl) return;
+  const { strict = false, extraQueries = [] } = opts;
+  const pickSrc = (d) => d.originalimage?.source || d.thumbnail?.source;
+  // Guard against race: if this wrapEl has been removed from the DOM
+  // (because a newer card has replaced it), don't paint into it.
+  const setImg = (src) => {
+    if (!wrapEl.isConnected) return;
+    wrapEl.innerHTML = `<img class="card-img" src="${src}" alt="${query}">`;
+  };
+  const fileToUrl = (fileTitle) => `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(fileTitle.replace(/^File:/, ''))}?width=1200`;
+  // Skip icons/logos/non-browser formats. Prefer JPG/PNG/WebP photos.
+  const isUsableFile = (t) => /\.(jpe?g|png|webp)$/i.test(t) && !/(logo|icon|commons-|edit-|wiki-|nuvola|symbol|flag of|coat of arms|map of)/i.test(t);
+  // Bias toward files whose name contains any of preferTerms (case-insensitive).
+  // In strict mode, return null if no match — never fall back to a possibly-irrelevant image.
+  const preferRe = preferTerms.length ? new RegExp(preferTerms.join('|'), 'i') : null;
+  const pickBest = (titles) => {
+    const usable = titles.filter(isUsableFile);
+    if (preferRe) {
+      const preferred = usable.find(t => preferRe.test(t));
+      if (preferred) return preferred;
     }
-    // Fall back to search API
+    return strict ? null : usable[0];
+  };
+
+  // In non-strict mode, try the article's lead image first (steps 1 & 2).
+  // In strict mode, we skip these — the lead image of a building's article is almost always exterior.
+  if (!strict) {
+    // 1. Wikipedia REST summary by exact title
+    try {
+      const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
+      if (res.ok) {
+        const src = pickSrc(await res.json());
+        if (src) { setImg(src); return; }
+      }
+    } catch {}
+  }
+
+  // Resolve to the canonical Wikipedia article title via search (handles redirects, typos)
+  let articleTitle = null;
+  try {
     const searchRes = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srlimit=1&format=json&origin=*`);
-    if (!searchRes.ok) return;
-    const searchData = await searchRes.json();
-    const title = searchData.query?.search?.[0]?.title;
-    if (!title) return;
-    const res2 = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`);
-    if (!res2.ok) return;
-    const data2 = await res2.json();
-    if (data2.thumbnail?.source) {
-      wrapEl.innerHTML = `<img class="card-img" src="${data2.thumbnail.source}" alt="${query}">`;
+    if (searchRes.ok) {
+      articleTitle = (await searchRes.json()).query?.search?.[0]?.title || null;
     }
   } catch {}
+
+  if (!strict && !articleTitle) return;
+
+  if (!strict && articleTitle) {
+    // 2. Re-try REST summary with the resolved article title
+    try {
+      const res2 = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(articleTitle)}`);
+      if (res2.ok) {
+        const src2 = pickSrc(await res2.json());
+        if (src2) { setImg(src2); return; }
+      }
+    } catch {}
+  }
+
+  // 3. List images used IN the resolved article — bias by preferTerms (required in strict mode)
+  if (articleTitle) {
+    try {
+      const imgRes = await fetch(`https://en.wikipedia.org/w/api.php?action=query&prop=images&titles=${encodeURIComponent(articleTitle)}&imlimit=40&format=json&origin=*`);
+      if (imgRes.ok) {
+        const pages = (await imgRes.json()).query?.pages || {};
+        const images = Object.values(pages)[0]?.images || [];
+        const best = pickBest(images.map(i => i.title));
+        if (best) { setImg(fileToUrl(best)); return; }
+      }
+    } catch {}
+  }
+
+  // 4. Commons search — in strict mode, search with preferTerms appended ("Art Deco interior")
+  //    and require the preferTerms match. Also try extraQueries (e.g. famous example) as fallback.
+  const searchQueries = strict && preferTerms.length
+    ? [...[query, ...extraQueries].flatMap(q => preferTerms.map(t => `${q} ${t}`)), query, ...extraQueries]
+    : [articleTitle || query, ...extraQueries];
+  for (const sq of searchQueries) {
+    if (!sq) continue;
+    try {
+      const cRes = await fetch(`https://commons.wikimedia.org/w/api.php?action=query&list=search&srnamespace=6&srsearch=${encodeURIComponent(sq)}&srlimit=20&format=json&origin=*`);
+      if (!cRes.ok) continue;
+      const hits = (await cRes.json()).query?.search || [];
+      const best = pickBest(hits.map(h => h.title));
+      if (best) { setImg(fileToUrl(best)); return; }
+    } catch {}
+  }
 }
 
 // ─────────────────────────────────────────
@@ -759,7 +884,12 @@ function makeLoader(slug, promptFn, renderFn, fallback, onAfterRender) {
     }
     try {
       const data = await callClaude(promptFn({ dismissed, liked, disliked }));
-      const id = String(data.name || data.title || data.concept || data.suggestion || data.headline || data.pairing || Date.now());
+      const id = String(
+        data.name || data.title || data.concept || data.suggestion || data.headline ||
+        data.pairing || data.style_name || data.topic || data.prompt || data.idea ||
+        (data.item_a && data.item_b ? `${data.item_a} × ${data.item_b}` : '') ||
+        Date.now()
+      );
       el.innerHTML = renderFn(data, id);
       addSwipeListener(el.querySelector('.content-card'), slug, id, load);
       if (onAfterRender) onAfterRender(data, el);
@@ -775,7 +905,8 @@ function makeLoader(slug, promptFn, renderFn, fallback, onAfterRender) {
 loaders.flower = makeLoader(
   'flower',
   ({ dismissed, liked }) => `You are a botanical enthusiast. Return ONLY a valid JSON object with no markdown fences.
-Generate a unique flower profile. Shape: {"name":"...","origin":"...","meaning":"...","care_tip":"...","fun_fact":"..."}
+Generate a unique flower profile. Shape: {"name":"...","origin":"...","meaning":"...","care_tip":"...","fun_fact":"...","wiki_image":"..."}
+wiki_image: the exact title of a Wikipedia article that will have a strong photo of this flower — prefer the scientific genus or species name (e.g. for Bird of Paradise use "Strelitzia reginae", for Cherry Blossom use "Prunus serrulata", for Lotus use "Nelumbo nucifera"). Avoid disambiguation pages.
 ${dismissed.length ? `Do not repeat these: ${dismissed.slice(-20).join(', ')}` : ''}
 ${liked.length ? `User liked these — suggest something similar in spirit: ${liked.slice(-5).join(', ')}` : ''}`,
   (d, id) => `
@@ -790,8 +921,8 @@ ${liked.length ? `User liked these — suggest something similar in spirit: ${li
       ${cardFooter('flower', id, `${d.name}\n\nMeaning: ${d.meaning}\nFun fact: ${d.fun_fact}\n\nWhat does this flower make me think of?`)}
       ${googleBtn(d.name + ' flower')}
     </div>`,
-  { name: 'Lavender', origin: 'Mediterranean basin', meaning: 'Calm, devotion, and serenity', care_tip: 'Needs full sun and very well-drained soil — overwatering is its biggest enemy', fun_fact: 'Romans added lavender to their bath water; the name comes from the Latin lavare, "to wash"' },
-  (data, el) => fetchWikiImage(data.name, el.querySelector('.card-img-wrap'))
+  { name: 'Lavender', origin: 'Mediterranean basin', meaning: 'Calm, devotion, and serenity', care_tip: 'Needs full sun and very well-drained soil — overwatering is its biggest enemy', fun_fact: 'Romans added lavender to their bath water; the name comes from the Latin lavare, "to wash"', wiki_image: 'Lavandula angustifolia' },
+  (data, el) => fetchWikiImage(data.wiki_image || data.name, el.querySelector('.card-img-wrap'))
 );
 
 // ─────────────────────────────────────────
@@ -800,24 +931,35 @@ ${liked.length ? `User liked these — suggest something similar in spirit: ${li
 loaders.color = makeLoader(
   'color',
   ({ dismissed }) => `You are an interior designer and color psychologist. Return ONLY a valid JSON object with no markdown fences.
-Generate a color profile. Shape: {"name":"...","hex":"#...","psychology":"...","where_to_use":"...","pairs_with":"..."}
+Generate a color profile with a complementary palette. Shape: {"name":"...","hex":"#...","psychology":"...","where_to_use":"...","pairs_with":[{"name":"...","hex":"#..."},{"name":"...","hex":"#..."},{"name":"...","hex":"#..."}]}
 name: a specific shade with a poetic name (e.g. "Dusty Sage", "Warm Terracotta", "Faded Periwinkle")
+hex: an accurate hex code for the color
 psychology: what this color evokes emotionally, 1-2 sentences
 where_to_use: one specific interior design or styling application
-pairs_with: 2-3 complementary colors by name
+pairs_with: exactly 3 complementary colors, each with a poetic name and an accurate hex code that harmonizes with the main color (think real designer palettes — analogous, complementary, or triadic)
 ${dismissed.length ? `Avoid these colors: ${dismissed.slice(-20).join(', ')}` : ''}`,
-  (d, id) => `
+  (d, id) => {
+    const pairs = Array.isArray(d.pairs_with) ? d.pairs_with : [];
+    const pairsHtml = pairs.length ? `<div class="pair-row">${pairs.map(p => `
+      <div class="pair-chip">
+        <div class="pair-swatch" style="background:${p.hex}"></div>
+        <div class="pair-name">${p.name}</div>
+        <div class="pair-hex">${p.hex}</div>
+      </div>`).join('')}</div>` : '';
+    const pairsText = pairs.length ? pairs.map(p => `${p.name} (${p.hex})`).join(', ') : (typeof d.pairs_with === 'string' ? d.pairs_with : '');
+    return `
     <div class="content-card">
       <div class="color-swatch" style="background:${d.hex}"></div>
       <div class="card-tag">Color of the Day</div>
       <div class="card-title">${d.name} <span style="font-size:0.7rem;font-weight:400;color:var(--text-muted)">${d.hex}</span></div>
       <div class="card-field"><span class="field-label">Psychology</span>${d.psychology}</div>
       <div class="card-field"><span class="field-label">Where to use it</span>${d.where_to_use}</div>
-      <div class="card-field"><span class="field-label">Pairs with</span>${d.pairs_with}</div>
-      ${cardFooter('color', id, `${d.name} (${d.hex})\n\n${d.psychology}\n\nWhere to use: ${d.where_to_use}\nPairs with: ${d.pairs_with}`)}
+      <div class="card-field"><span class="field-label">Pairs with</span>${pairsHtml}</div>
+      ${cardFooter('color', id, `${d.name} (${d.hex})\n\n${d.psychology}\n\nWhere to use: ${d.where_to_use}\nPairs with: ${pairsText}`)}
       ${googleBtn(d.name + ' color palette interior')}
-    </div>`,
-  { name: 'Dusty Rose', hex: '#C9A0A0', psychology: 'A gentle, grounding hue that evokes warmth and quiet femininity — calming without being cold.', where_to_use: 'Bedroom walls or linen textiles for a soft, restful atmosphere.', pairs_with: 'Sage green, ivory, warm grey' }
+    </div>`;
+  },
+  { name: 'Dusty Rose', hex: '#C9A0A0', psychology: 'A gentle, grounding hue that evokes warmth and quiet femininity — calming without being cold.', where_to_use: 'Bedroom walls or linen textiles for a soft, restful atmosphere.', pairs_with: [{ name: 'Sage Green', hex: '#A3B18A' }, { name: 'Warm Ivory', hex: '#F2E8DC' }, { name: 'Stone Grey', hex: '#8E867B' }] }
 );
 
 // ─────────────────────────────────────────
@@ -1131,8 +1273,10 @@ loaders.weather = async function() {
   const el = document.getElementById('weather-content');
   el.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
   const city = localStorage.getItem('city') || 'New York';
+  // Open-Meteo geocoder doesn't parse "City, ST" — strip state/country suffix
+  const cityQuery = city.split(',')[0].trim();
   try {
-    const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en&format=json`);
+    const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityQuery)}&count=1&language=en&format=json`);
     const geoData = await geoRes.json();
     const loc = geoData.results?.[0];
     if (!loc) throw new Error('City not found');
@@ -1180,7 +1324,8 @@ connection: one sentence tying it to today's specific conditions`);
       </div>`;
     addSwipeListener(el.querySelector('.content-card'), 'weather', id, loaders.weather);
   } catch(e) {
-    el.innerHTML = '<div class="error">Could not load weather. Make sure your city is set in Settings.</div>';
+    console.error('Weather load failed:', e);
+    el.innerHTML = `<div class="error">Could not load weather.<br><br><strong>City:</strong> ${city || '(none)'}<br><strong>Error:</strong> ${e.message || e}</div>`;
   }
 };
 
@@ -1216,14 +1361,14 @@ ${dismissed.length ? `Avoid these pairings: ${dismissed.slice(-20).join(', ')}` 
 loaders.interior = makeLoader(
   'interior',
   ({ dismissed }) => `You are an interior design historian and stylist. Return ONLY a valid JSON object with no markdown fences.
-Spotlight one named interior design style or movement. Shape: {"style_name":"...","era":"...","origin":"...","description":"...","key_elements":"...","famous_example":"...","wiki_image":"..."}
+Spotlight one named interior design style or movement. Shape: {"style_name":"...","era":"...","origin":"...","description":"...","key_elements":"...","famous_example":"...","interior_image_query":"..."}
 style_name: the specific named style (e.g. Japandi, Wabi-Sabi, Art Deco, Biophilic, Memphis, Bauhaus)
 era: decade or period it emerged
 origin: country or cultural context
 description: 2-3 sentences on what defines it and how it feels to be in a space designed this way
 key_elements: 3-4 specific design elements, materials, or colors that characterize it
-famous_example: a real room, building, designer, or hotel that embodies it
-wiki_image: the exact title of a Wikipedia article that would have a strong, relevant photo for this style — prefer a specific iconic building, room, or artwork over the style name itself (e.g. for Art Deco use "Chrysler Building", for Bauhaus use "Bauhaus Dessau", for Minimalism use "Fallingwater")
+famous_example: a real, specific named building or room that embodies this style (NOT a designer's name, NOT a movement). Examples: "Chrysler Building lobby", "Eames House", "Villa Savoye", "Bauhaus Dessau", "Farnsworth House"
+interior_image_query: a tight 2-4 word Wikimedia Commons search phrase that will return a PHOTO OF THE INTERIOR of famous_example — never an exterior, never a person, never an event. Always include either "interior", "lobby", or a specific room word ("living room", "dining room", "main hall"). Examples: Art Deco → "Chrysler Building lobby", Mid-Century Modern → "Eames House interior", Bauhaus → "Bauhaus Dessau interior", International Style → "Villa Savoye living room", Memphis → "Memphis Group interior"
 ${dismissed.length ? `Avoid these styles: ${dismissed.slice(-20).join(', ')}` : ''}`,
   (d, id) => `
     <div class="content-card">
@@ -1234,11 +1379,11 @@ ${dismissed.length ? `Avoid these styles: ${dismissed.slice(-20).join(', ')}` : 
       <div class="card-body">${d.description}</div>
       <div class="card-field"><span class="field-label">Key elements</span>${d.key_elements}</div>
       <div class="card-field"><span class="field-label">Famous example</span>${d.famous_example}</div>
-      ${cardFooter('interior', id, `${d.style_name} (${d.era})\n\n${d.description}\n\nKey elements: ${d.key_elements}\n\nExample: ${d.famous_example}`)}
+      ${cardFooter('interior', id, `${d.style_name} (${d.era})\n\n${d.description}\n\nKey elements: ${d.key_elements}\n\nExample: ${d.famous_example}`, d.famous_example ? `https://en.wikipedia.org/wiki/${encodeURIComponent(d.famous_example.replace(/ /g, '_'))}` : '')}
       ${googleBtn(d.style_name + ' interior design style')}
     </div>`,
-  { style_name: 'Japandi', era: '2010s–present', origin: 'Japan & Scandinavia', description: 'A hybrid of Japanese wabi-sabi and Scandinavian hygge, Japandi spaces feel stripped back but deeply warm — every object is deliberate, every surface textural. It prizes function, imperfection, and calm above all else.', key_elements: 'Natural woods, muted earth tones, handmade ceramics, low furniture, organic shapes', famous_example: 'Muji\'s flagship store interiors and Norm Architects\' residential projects in Copenhagen', wiki_image: 'Japanese architecture' },
-  (data, el) => fetchWikiImage(data.wiki_image || data.style_name, el.querySelector('.card-img-wrap'))
+  { style_name: 'Japandi', era: '2010s–present', origin: 'Japan & Scandinavia', description: 'A hybrid of Japanese wabi-sabi and Scandinavian hygge, Japandi spaces feel stripped back but deeply warm — every object is deliberate, every surface textural. It prizes function, imperfection, and calm above all else.', key_elements: 'Natural woods, muted earth tones, handmade ceramics, low furniture, organic shapes', famous_example: 'Norm Architects Copenhagen residence', interior_image_query: 'Japanese tea house interior' },
+  (data, el) => fetchInteriorImage(data.interior_image_query || `${data.famous_example} interior`, el.querySelector('.card-img-wrap'))
 );
 
 function toggleBreathe() { breatheRunning ? stopBreathe() : startBreathe(); }
@@ -1391,7 +1536,10 @@ function pickRandom() {
 loaders.home = () => {};
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js').catch(() => {});
+  const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then(reg => {
+    if (isLocal) reg.update();
+  }).catch(() => {});
   navigator.serviceWorker.addEventListener('controllerchange', () => window.location.reload());
 }
 
