@@ -141,15 +141,6 @@
     .card-img { width: 100%; height: 100%; object-fit: contain; display: block; }
     .card-img-wrap:empty { display: none; }
 
-    /* ── Weather ── */
-    .wx-current { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
-    .wx-chip { background: var(--bg2); border-radius: 20px; padding: 5px 12px; font-size: 0.8rem; color: var(--text); border: 1px solid var(--border); }
-    .wx-forecast { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 16px; }
-    .wx-day { display: flex; flex-direction: column; align-items: center; gap: 4px; background: var(--bg2); border-radius: 10px; padding: 10px 12px; min-width: 58px; border: 1px solid var(--border); font-size: 0.78rem; }
-    .wx-day-name { font-weight: 700; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; }
-    .wx-day-icon { font-size: 1.3rem; }
-    .wx-day-temps { color: var(--text); font-size: 0.75rem; }
-    .wx-day-precip { color: var(--text-muted); font-size: 0.68rem; }
     /* ── Pairing ── */
     .pairing-items { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
     .pairing-item { flex: 1; background: var(--bg2); border-radius: 10px; padding: 14px 10px; text-align: center; font-weight: 700; font-size: 0.95rem; border: 1px solid var(--border); }
@@ -494,6 +485,18 @@
 </div>
 
 <script>
+// ─────────────────────────────────────────
+// LOCK ZOOM (iOS Safari ignores user-scalable=no; touch-action: pan-y on
+// html/body already kills double-tap zoom and within-page pinch, but pinch via
+// gesture* events still slips through — block those plus any multi-touch move.)
+// ─────────────────────────────────────────
+['gesturestart', 'gesturechange', 'gestureend'].forEach(evt =>
+  document.addEventListener(evt, e => e.preventDefault(), { passive: false })
+);
+document.addEventListener('touchmove', e => {
+  if (e.touches.length > 1) e.preventDefault();
+}, { passive: false });
+
 // ─────────────────────────────────────────
 // ACTIVITIES
 // ─────────────────────────────────────────
