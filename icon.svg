@@ -1,0 +1,11 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- for Amanda — paper crane app icon -->
+  <!-- Palette: periwinkle field #A8B0E8, cream paper #F5F2F7, plum beak #3A2E4A -->
+  <rect width="1024" height="1024" fill="#A8B0E8"/>
+  <g transform="translate(72 188) scale(0.696)">
+    <!-- Body silhouette traced from reference -->
+    <path d="M 696 886 L 653 864 L 480 849 L 330 299 L 219 324 L 222 257 L 299 210 L 368 234 L 538 584 L 837 6 L 884 480 L 1194 186 L 1026 618 L 957 720 L 870 771 L 936 853 L 830 814 L 789 878 L 750 852 L 696 886 Z" fill="#F5F2F7"/>
+    <!-- Beak -->
+    <path d="M 35 378 L 30 377 L 222 256 L 218 302 L 218 324 L 220 326 L 153 342 L 35 378 Z" fill="#3A2E4A"/>
+  </g>
+</svg>
