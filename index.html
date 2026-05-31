@@ -46,6 +46,12 @@
       background: var(--bg); color: var(--text);
       max-width: 430px; margin: 0 auto; min-height: 100vh;
       overflow-x: hidden; -webkit-font-smoothing: antialiased;
+      -webkit-user-select: none; user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    /* Re-enable selection on the user's own typed/logged content + form fields */
+    input, textarea, select, [contenteditable] {
+      -webkit-user-select: text; user-select: text;
     }
     button { font-family: inherit; }
 

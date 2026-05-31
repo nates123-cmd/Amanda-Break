@@ -1,4 +1,4 @@
-const CACHE = 'amannda-break-v21';
+const CACHE = 'amannda-break-v22';
 const ASSETS = ['./', './index.html', './manifest.json', './icon.svg', './icon-180.png', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
